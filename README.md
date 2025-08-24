@@ -1,10 +1,10 @@
-بِسْــــــــــــــــــمِ اللهِ الرَّحْمَنِ الرَّحِيْمِ
+# بِسْــــــــــــــــــمِ اللهِ الرَّحْمَنِ الرَّحِيْمِ
 
-# 📱 Flutter Stock Opname
+## 📱 Flutter Stock Opname
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.16.0-blue) ![Dart](https://img.shields.io/badge/Dart-3.2.0-blue) ![Laravel](https://img.shields.io/badge/Laravel-8-red)
 
-Try to build a simple app that can be used to manage stocks by rebasing 
+Try to build a simple app that can be used to manage stocks by rebasing
 
 ## 🚀 Installation & Setup
 
@@ -101,6 +101,55 @@ fvm flutter build ios
 fvm flutter clean
 fvm flutter pub get
 fvm flutter pub run easy_localization:generate -S assets/translations -O lib -f keys -o locale_keys.g.dart
+```
+
+Import locale_keys.g.dart to your class
+
+```dart
+import 'package:easy_localization/easy_localization.dart';
+import 'package:syathiby/generated/locale_keys.g.dart';
+```
+
+Use it in your widget
+
+```dart
+Text('app_name'.tr()),
+```
+
+or
+
+```dart
+Text(LocaleKeys.app_name.tr()),
+```
+
+### Dart Utility
+
+```sh
+dart analyze
+dart analyze --fatal-infos
+
+dart fix --apply
+dart fix --dry-run
+
+dart fix --help
+dart fix --apply --code=unused_import
+dart fix --apply --code=unused_local_variable
+dart fix --apply lib/main.dart
+dart fix --apply lib/main.dart lib/utils.dart
+```
+
+settings.json
+
+```json
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.organizeImports": true,
+    "source.removeUnusedImports": true
+  },
+  "dart.autoImportCompletions": true,
+  "dart.previewLsp": true
+}
 ```
 
 ---

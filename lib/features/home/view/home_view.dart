@@ -18,7 +18,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
 import 'package:syathiby/features/home/service/attendance_service.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 import 'package:syathiby/common/helpers/ui_helper.dart';
 import 'package:syathiby/common/widgets/custom_scaffold.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
@@ -80,12 +80,14 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<AnnouncementCubit>()..loadAnnouncements(),
-      child: HomeContent(),
+      child: const HomeContent(),
     );
   }
 }
 
 class HomeContent extends StatefulWidget {
+  const HomeContent({super.key});
+
   @override
   State<HomeContent> createState() => _HomeContentState();
 }
@@ -546,49 +548,47 @@ class _HomeContentState extends State<HomeContent> {
         ),
 
         // WordPress Posts
-        ..._posts
-            .map((post) => Container(
-                  margin: const EdgeInsets.only(bottom: 20),
-                  padding: const EdgeInsets.all(20),
-                  width: UIHelper.deviceWidth,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (post.thumbnailUrl.isNotEmpty)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl: post.thumbnailUrl,
-                            width: double.infinity,
-                            height: 200,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
-                              child: CupertinoActivityIndicator(),
-                            ),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
-                          ),
+        ..._posts.map((post) => Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.all(20),
+              width: UIHelper.deviceWidth,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (post.thumbnailUrl.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: CachedNetworkImage(
+                        imageUrl: post.thumbnailUrl,
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const Center(
+                          child: CupertinoActivityIndicator(),
                         ),
-                      const SizedBox(height: 10),
-                      Text(
-                        _parseHtmlString(post.title),
-                        style: Theme.of(context).textTheme.titleMedium,
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       ),
-                      const SizedBox(height: 10),
-                      Text(post.date),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: const Text('Read More'),
-                        onPressed: () => launchUrl(Uri.parse(post.link)),
-                      ),
-                    ],
+                    ),
+                  const SizedBox(height: 10),
+                  Text(
+                    _parseHtmlString(post.title),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                ))
-            .toList(),
+                  const SizedBox(height: 10),
+                  Text(post.date),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    child: const Text('Read More'),
+                    onPressed: () => launchUrl(Uri.parse(post.link)),
+                  ),
+                ],
+              ),
+            )),
       ],
     );
   }

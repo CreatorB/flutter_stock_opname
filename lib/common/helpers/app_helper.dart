@@ -9,7 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:syathiby/core/constants/app_constants.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 import 'package:http/http.dart' as http;
 import 'package:syathiby/core/models/http_response_model.dart';
 import 'package:uuid/uuid.dart';

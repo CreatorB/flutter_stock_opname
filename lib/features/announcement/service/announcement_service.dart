@@ -14,7 +14,7 @@ class AnnouncementService {
       LoggerUtil.debug(
           'Fetching announcements from: ${_dio.options.baseUrl}/announcements/active');
 
-      final token = await SharedPreferencesService.instance
+      final token = SharedPreferencesService.instance
           .getData<String>(PreferenceKey.authToken);
 
       if (token == null) {
