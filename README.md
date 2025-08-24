@@ -4,13 +4,15 @@
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.16.0-blue) ![Dart](https://img.shields.io/badge/Dart-3.2.0-blue) ![Laravel](https://img.shields.io/badge/Laravel-8-red)
 
+Try to build a simple app that can be used to manage stocks by rebasing 
+
 ## 🚀 Installation & Setup
 
 ### 1️⃣ Prerequisites
 
 Ensure you have installed:
 
-- Flutter SDK → [Download Flutter](https://fvm flutter.dev/docs/get-started/install)
+- Flutter SDK → [Download Flutter](https://fvmflutter.dev/docs/get-started/install)
 - Android Studio / VS Code
 - Emulator or physical device
 
