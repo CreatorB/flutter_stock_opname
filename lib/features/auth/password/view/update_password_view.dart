@@ -12,7 +12,7 @@ import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
 import 'package:syathiby/features/theme/bloc/theme_state.dart';
 import 'package:syathiby/common/components/custom_text_field.dart';
 import 'package:syathiby/common/components/custom_trailing.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 import 'package:syathiby/common/helpers/app_helper.dart';
 import 'package:syathiby/core/models/http_response_model.dart';
 import 'package:syathiby/features/auth/password/widget/update_password_button.dart';
@@ -26,7 +26,8 @@ class UpdatePasswordView extends StatefulWidget {
   State<UpdatePasswordView> createState() => _UpdatePasswordViewState();
 }
 
-class _UpdatePasswordViewState extends State<UpdatePasswordView> with UpdatePasswordViewMixin {
+class _UpdatePasswordViewState extends State<UpdatePasswordView>
+    with UpdatePasswordViewMixin {
   @override
   Widget build(BuildContext context) {
     final LoginBloc loginBloc = BlocProvider.of<LoginBloc>(context);
@@ -55,25 +56,32 @@ class _UpdatePasswordViewState extends State<UpdatePasswordView> with UpdatePass
                         const Text(LocaleKeys.enter_valid_password).tr(),
                         const SizedBox(height: 10),
                         CustomTextField(
-                          textEditingController: _newPasswordTextEditingController,
+                          textEditingController:
+                              _newPasswordTextEditingController,
                           prefixIcon: CupertinoIcons.lock,
                           placeholder: LocaleKeys.password.tr(),
                           obscureText: true,
                           textInputAction: TextInputAction.done,
                           enabled: !loginState.isLoading,
-                          onSubmitted: (loginState.isLoading || registerState.message == null)
+                          onSubmitted: (loginState.isLoading ||
+                                  registerState.message == null)
                               ? null
                               : (p0) {
-                                  _updateButtonOnPressed(loginBloc: loginBloc, registerState: registerState);
+                                  _updateButtonOnPressed(
+                                      loginBloc: loginBloc,
+                                      registerState: registerState);
                                 },
                         ),
                         const SizedBox(height: 10),
                         UpdatePasswordButton(
                           isLoading: loginState.isLoading,
-                          onPressed: (loginState.isLoading || registerState.message == null)
+                          onPressed: (loginState.isLoading ||
+                                  registerState.message == null)
                               ? null
                               : () {
-                                  _updateButtonOnPressed(loginBloc: loginBloc, registerState: registerState);
+                                  _updateButtonOnPressed(
+                                      loginBloc: loginBloc,
+                                      registerState: registerState);
                                 },
                         ),
                       ],

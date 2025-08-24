@@ -1,12 +1,8 @@
-import 'dart:ui';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
 import 'package:syathiby/features/announcement/model/announcement_model.dart';
-import 'package:syathiby/features/theme/bloc/theme_state.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_html/flutter_html.dart';
 

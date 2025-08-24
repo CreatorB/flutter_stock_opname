@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:syathiby/features/profile/model/user_model.dart';
 
 class RegisterState extends Equatable {
   final String? message;
@@ -12,26 +11,29 @@ class RegisterState extends Equatable {
 }
 
 class RegisterSuccess extends RegisterState {
+  @override
   final dynamic data;
+  @override
   final String message;
 
   const RegisterSuccess({
     required this.message,
-    required bool isLoading,
+    required super.isLoading,
     this.data,
-  }) : super(isLoading: isLoading);
+  });
 
   @override
   List<Object?> get props => [isLoading, message, data];
 }
 
 class RegisterFailed extends RegisterState {
+  @override
   final String? message;
 
   const RegisterFailed({
-    required bool isLoading,
+    required super.isLoading,
     this.message,
-  }) : super(isLoading: isLoading);
+  });
 
   @override
   List<Object?> get props => [isLoading, message];

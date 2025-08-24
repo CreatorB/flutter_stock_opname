@@ -4,23 +4,28 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
 import 'package:syathiby/features/theme/bloc/theme_state.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 
 class UpdatePasswordButton extends StatelessWidget {
   final bool isLoading;
   final void Function()? onPressed;
-  const UpdatePasswordButton({super.key, this.isLoading = false, required this.onPressed});
+  const UpdatePasswordButton(
+      {super.key, this.isLoading = false, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
         return CupertinoButton(
-          color: themeState.isDark ? ColorConstants.darkPrimaryIcon : ColorConstants.lightPrimaryIcon,
+          color: themeState.isDark
+              ? ColorConstants.darkPrimaryIcon
+              : ColorConstants.lightPrimaryIcon,
           onPressed: onPressed,
           borderRadius: const BorderRadius.all(Radius.circular(10)),
           padding: const EdgeInsets.all(10),
-          disabledColor: themeState.isDark ? ColorConstants.darkPrimaryIcon : ColorConstants.lightPrimaryIcon,
+          disabledColor: themeState.isDark
+              ? ColorConstants.darkPrimaryIcon
+              : ColorConstants.lightPrimaryIcon,
           pressedOpacity: 0.5,
           child: isLoading
               ? const CupertinoActivityIndicator(

@@ -15,7 +15,7 @@ import 'package:syathiby/features/theme/bloc/theme_state.dart';
 import 'package:syathiby/core/constants/app_constants.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/core/constants/supported_locales.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 import 'package:syathiby/common/helpers/ui_helper.dart';
 import 'package:syathiby/features/profile/widget/profile_photo_widget.dart';
 import 'package:syathiby/features/settings/widget/list_section_widet.dart';

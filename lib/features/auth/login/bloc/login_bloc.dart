@@ -1,10 +1,7 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
 import 'package:syathiby/features/auth/login/bloc/login_event.dart';
 import 'package:syathiby/features/auth/login/bloc/login_state.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
-import 'package:syathiby/core/models/http_response_model.dart';
 import 'package:syathiby/features/profile/model/user_model.dart';
 import 'package:syathiby/features/profile/service/user_service.dart';
 

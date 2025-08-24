@@ -10,7 +10,7 @@ import 'package:syathiby/features/profile/bloc/profile_bloc.dart';
 import 'package:syathiby/features/profile/bloc/profile_event.dart';
 import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
 import 'package:syathiby/features/theme/bloc/theme_state.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 import 'package:syathiby/common/helpers/app_helper.dart';
 import 'package:syathiby/features/auth/verify/widget/verification_code_text_field.dart';
 import 'package:syathiby/common/components/custom_trailing.dart';
@@ -47,24 +47,35 @@ class _VerifyViewState extends State<VerifyView> with VerifyViewMixin {
                     },
                   ),
                   children: [
-                    (registerState is CheckSuccess || registerState is ForgotPasswordCheckSuccess)
+                    (registerState is CheckSuccess ||
+                            registerState is ForgotPasswordCheckSuccess)
                         ? Column(
                             children: [
                               RichText(
                                 text: TextSpan(
                                   children: [
-                                    TextSpan(text: LocaleKeys.enter_verification_code_prefix.tr()),
+                                    TextSpan(
+                                        text: LocaleKeys
+                                            .enter_verification_code_prefix
+                                            .tr()),
                                     TextSpan(
                                         text: registerState is CheckSuccess
                                             ? registerState.email
-                                            : registerState is ForgotPasswordCheckSuccess
+                                            : registerState
+                                                    is ForgotPasswordCheckSuccess
                                                 ? registerState.email
                                                 : "",
-                                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    TextSpan(text: LocaleKeys.enter_verification_code_suffix.tr()),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    TextSpan(
+                                        text: LocaleKeys
+                                            .enter_verification_code_suffix
+                                            .tr()),
                                   ],
                                   style: TextStyle(
-                                    color: themeState.isDark ? CupertinoColors.white : CupertinoColors.black,
+                                    color: themeState.isDark
+                                        ? CupertinoColors.white
+                                        : CupertinoColors.black,
                                   ),
                                 ),
                               ),
@@ -74,9 +85,12 @@ class _VerifyViewState extends State<VerifyView> with VerifyViewMixin {
                         : const SizedBox(),
                     VerificationCodeTextField(
                       enabled: !registerState.isLoading,
-                      textEditingController: _verificationCodeTextEditingController,
+                      textEditingController:
+                          _verificationCodeTextEditingController,
                       onPressed: () async {
-                        await _register(registerState: registerState, registerBloc: registerBloc);
+                        await _register(
+                            registerState: registerState,
+                            registerBloc: registerBloc);
                       },
                     ),
                   ],

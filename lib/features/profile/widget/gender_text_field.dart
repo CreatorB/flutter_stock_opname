@@ -6,7 +6,7 @@ import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
 import 'package:syathiby/features/theme/bloc/theme_state.dart';
 import 'package:syathiby/core/constants/app_constants.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 
 class GenderTextFieldWidget extends StatefulWidget {
   final TextEditingController textEditingController;
@@ -54,7 +54,9 @@ class _GenderTextFieldWidgetState extends State<GenderTextFieldWidget> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(AppConstants.getGender(gender)),
-                              widget.initialGender == gender ? const Icon(CupertinoIcons.checkmark) : const SizedBox(),
+                              widget.initialGender == gender
+                                  ? const Icon(CupertinoIcons.checkmark)
+                                  : const SizedBox(),
                             ],
                           ),
                         ),
@@ -81,7 +83,9 @@ class _GenderTextFieldWidgetState extends State<GenderTextFieldWidget> {
             padding: const EdgeInsets.only(right: 10),
             child: Icon(
               CupertinoIcons.forward,
-              color: themeState.isDark ? ColorConstants.darkSecondaryIcon : ColorConstants.lightSecondaryIcon,
+              color: themeState.isDark
+                  ? ColorConstants.darkSecondaryIcon
+                  : ColorConstants.lightSecondaryIcon,
             ),
           ),
           decoration: BoxDecoration(
