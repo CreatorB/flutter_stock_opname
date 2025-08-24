@@ -331,7 +331,7 @@ class _HomeContentState extends State<HomeContent> {
             builder: (context) => CupertinoAlertDialog(
               title: const Text('Warning'),
               content: const Text(
-                  'Afwan, fitur absen hanya bisa menggunakan jaringan (WiFi/LAN) Mahad Syathiby.'),
+                  'Afwan, fitur absen hanya bisa menggunakan jaringan (WiFi/LAN).'),
               actions: [
                 CupertinoDialogAction(
                   child: const Text('OK'),
