@@ -15,6 +15,7 @@ import 'package:syathiby/core/services/theme_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:syathiby/generated/locale_keys.g.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,7 +87,7 @@ class _MyAppState extends State<MyApp> {
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
-        title: 'Syathiby',
+        title: LocaleKeys.app_name.tr(),
         theme: ThemeService.buildTheme(themeState),
         debugShowCheckedModeBanner: false,
         routerConfig: RouterManager.router,
