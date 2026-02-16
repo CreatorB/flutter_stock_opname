@@ -21,13 +21,14 @@ class PushToRegisterButton extends StatelessWidget {
             context.go(Routes.register.path);
           },
           child: Text(
-            LocaleKeys.register,
+            LocaleKeys.register.tr(),
             style: TextStyle(
               color: themeState.isDark
                   ? ColorConstants.darkPrimaryIcon
                   : ColorConstants.lightPrimaryIcon,
+              fontWeight: FontWeight.bold,
             ),
-          ).tr(),
+          ),
         );
       },
     );

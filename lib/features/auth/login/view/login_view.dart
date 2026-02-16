@@ -24,6 +24,9 @@ import 'package:syathiby/features/auth/login/widget/background_widget.dart';
 import 'package:syathiby/features/auth/login/widget/login_button.dart';
 import 'package:syathiby/features/auth/login/widget/push_to_register_button.dart';
 import 'package:syathiby/features/auth/login/widget/title_widget.dart';
+
+import 'package:syathiby/features/auth/login/widget/config_view.dart';
+
 part "login_view_mixin.dart";
 
 class LoginView extends StatefulWidget {
@@ -46,6 +49,20 @@ class _LoginViewState extends State<LoginView> with LoginViewMixin {
             children: [
               const BackgroundWidget(),
               CupertinoPageScaffold(
+                navigationBar: CupertinoNavigationBar(
+                  backgroundColor: Colors.transparent,
+                  border: null,
+                  trailing: CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    child: const Icon(CupertinoIcons.settings),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        CupertinoPageRoute(
+                            builder: (context) => const ConfigView()),
+                      );
+                    },
+                  ),
+                ),
                 backgroundColor: Colors.transparent,
                 child: Center(
                   child: SingleChildScrollView(
@@ -63,11 +80,11 @@ class _LoginViewState extends State<LoginView> with LoginViewMixin {
                                 const SizedBox(height: 20),
                                 CustomTextField(
                                   textEditingController:
-                                      _emailTextEditingController,
+                                      _usernameTextEditingController,
                                   enabled: !state.isLoading,
-                                  placeholder: LocaleKeys.email.tr(),
-                                  prefixIcon: CupertinoIcons.mail,
-                                  keyboardType: TextInputType.emailAddress,
+                                  placeholder: "Username", // Using hardcoded "Username" for now as LocaleKeys might need update
+                                  prefixIcon: CupertinoIcons.person, // Changed icon to person
+                                  keyboardType: TextInputType.text, // Changed to text
                                 ),
                                 const SizedBox(height: 10),
                                 CustomTextField(

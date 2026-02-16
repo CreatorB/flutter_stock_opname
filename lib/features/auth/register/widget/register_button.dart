@@ -34,7 +34,13 @@ class RegisterButton extends StatelessWidget {
                 ? const CupertinoActivityIndicator(
                     color: CupertinoColors.white,
                   )
-                : const Text(LocaleKeys.register).tr(),
+                : Text(
+                    LocaleKeys.register.tr(),
+                    style: const TextStyle(
+                      color: CupertinoColors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
           ),
         );
       },

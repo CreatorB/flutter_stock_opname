@@ -12,52 +12,172 @@ class UserService extends UserInterface {
   final String _baseUrl = dotenv.env['BASE_URL'] ?? "";
   final dio = Dio();
 
-  @override
   Future<HttpResponseModel> login(
       {required String email, required String password}) async {
-    try {
-      LoggerUtil.debug('Starting login request for email: $email');
-      var url = Uri.parse('$_baseUrl/signin');
-      var response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      );
+    await Future.delayed(Duration(seconds: 2));
 
-      LoggerUtil.debug('Login response status: ${response.statusCode}');
-
-      if (response.statusCode == 200) {
-        var decodedResponse = jsonDecode(response.body);
-        LoggerUtil.debug('Decoded success: ${decodedResponse['success']}');
-        LoggerUtil.debug('Token: ${decodedResponse['data']['token']}');
-
-        if (decodedResponse['success'] == true) {
-          return HttpResponseModel(
-            statusCode: response.statusCode,
-            data: decodedResponse["data"],
-            message: decodedResponse["message"],
-          );
-        }
-      }
-
+    // Test case untuk berbagai scenario
+    if (email != "test@gmail.com") {
       return HttpResponseModel(
-        statusCode: response.statusCode,
-        message: jsonDecode(response.body)["message"],
-      );
-    } catch (e, stackTrace) {
-      LoggerUtil.error('Login error', e, stackTrace);
-      return HttpResponseModel(
-        statusCode: 500,
-        message: 'Connection error: $e',
+        statusCode: 401,
+        message: "Invalid credentials",
       );
     }
+
+    if (email == "test2@gmail.com") {
+      return HttpResponseModel(
+        statusCode: 500,
+        message: "Server error",
+      );
+    }
+
+    // Default success response
+ return HttpResponseModel(
+    statusCode: 200,
+    data: {
+        "user": {
+          "id": 5,
+          "uuid": "2825713a-945d-44e5-8484-31bfacaf782c",
+          "name": "Employee",
+          "email": email,
+          "email_verified_at": null,
+          "photo": null,
+          "gender": null,
+          "phone": null,
+          "nip": "1345121",
+          "working_days": 27,
+          "jumlah_cuti": 3,
+          "lokasi_kerja": null,
+          "tgl_mulai": null,
+          "tgl_berhenti": null,
+          "tempat_lahir": null,
+          "tanggal_lahir": null,
+          "pendidikan": null,
+          "gelar": null,
+          "jurusan": null,
+          "sekolah_universitas": null,
+          "tahun_lulus_1": null,
+          "pendidikan_2": null,
+          "jurusan_pendidikan_2": null,
+          "sekolah_universitas_2": null,
+          "tahun_lulus_2": null,
+          "alamat": null,
+          "type_pegawai": null,
+          "status_pegawai": null,
+          "ktp_id": null,
+          "keterangan": null,
+          "no_rek": null,
+          "special_adjustment_sa": null,
+          "sa_date_start_acting": null,
+          "kontrak_mulai_1": null,
+          "kontrak_selesai_1": null,
+          "kontrak_mulai_2": null,
+          "kontrak_selesai_2": null,
+          "gaji_pokok": null,
+          "ptt": null,
+          "t_jabatan": null,
+          "t_kehadiran": null,
+          "t_anak": null,
+          "bonus_sanad": null,
+          "diniyyah": null,
+          "status": "active",
+          "created_at": "2025-01-23T14:23:47.000000Z",
+          "updated_at": "2025-08-24T14:50:16.000000Z",
+          "photo_url": null,
+          "schedule": {
+            "id": 1,
+            "title": "Schedule 1 (00:00-24:00)",
+            "monday_start": "00:00:00",
+            "monday_end": "24:00:00",
+            "tuesday_start": "00:00:00",
+            "tuesday_end": "24:00:00",
+            "wednesday_start": "00:00:00",
+            "wednesday_end": "24:00:00",
+            "thursday_start": "00:00:00",
+            "thursday_end": "24:00:00",
+            "friday_start": "00:00:00",
+            "friday_end": "24:00:00",
+            "saturday_start": "00:00:00",
+            "saturday_end": "24:00:00",
+            "sunday_start": "00:00:00",
+            "sunday_end": "24:00:00",
+            "created_at": "2025-02-11T03:47:15.000000Z",
+            "updated_at": "2025-02-23T15:34:37.000000Z"
+          },
+          "department": {
+            "id": 1,
+            "name": "Kesantrian",
+            "code": "KESANTRIAN",
+            "head_id": null,
+            "location": null,
+            "description": null,
+            "status": "active",
+            "created_at": "2025-02-11T03:47:15.000000Z",
+            "updated_at": "2025-02-11T03:47:15.000000Z"
+          },
+          "part": {
+            "id": 1,
+            "name": "Kesehatan",
+            "department_id": 1,
+            "code": "KESEHATAN",
+            "head_id": null,
+            "description": null,
+            "created_at": "2025-02-11T03:47:15.000000Z",
+            "updated_at": "2025-02-11T03:47:15.000000Z"
+          }
+        },
+        "token": "WwxnyqGySSZxgI7UEsFu0YQOaFFB30btKr8gFBIHySyBL9xxbXiUCyNWDGEjC12vOC0OwzW6hyYEuo8l"
+      },
+    message: "Login successful",
+  );
   }
+
+  // @override
+  // Future<HttpResponseModel> login(
+  //     {required String email, required String password}) async {
+  //   try {
+  //     LoggerUtil.debug('Starting login request for email: $email');
+  //     var url = Uri.parse('$_baseUrl/signin');
+  //     var response = await http.post(
+  //       url,
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Accept': 'application/json',
+  //       },
+  //       body: jsonEncode({
+  //         'email': email,
+  //         'password': password,
+  //       }),
+  //     );
+
+  //     LoggerUtil.debug('Login response status: ${response.statusCode}');
+
+  //     if (response.statusCode == 200) {
+  //       var decodedResponse = jsonDecode(response.body);
+  //       LoggerUtil.debug('Decoded success: ${decodedResponse['success']}');
+  //       LoggerUtil.debug('Token: ${decodedResponse['data']['token']}');
+
+  //       if (decodedResponse['success'] == true) {
+  //         return HttpResponseModel(
+  //           statusCode: response.statusCode,
+  //           data: decodedResponse["data"],
+  //           message: decodedResponse["message"],
+  //         );
+  //       }
+  //     }
+
+  //     return HttpResponseModel(
+  //       statusCode: response.statusCode,
+  //       message: jsonDecode(response.body)["message"],
+  //     );
+  //   } catch (e, stackTrace) {
+  //     LoggerUtil.error('Login error', e, stackTrace);
+  //     return HttpResponseModel(
+  //       statusCode: 500,
+  //       message: 'Connection error: $e',
+  //     );
+  //   }
+  // }
 
   Future<HttpResponseModel> getUserData({required String token}) async {
     try {

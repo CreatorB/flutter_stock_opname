@@ -1,14 +1,14 @@
 part of "login_view.dart";
 
 mixin LoginViewMixin on State<LoginView> {
-  late TextEditingController _emailTextEditingController;
+  late TextEditingController _usernameTextEditingController;
   late TextEditingController _passwordTextEditingController;
   bool _rememberMe = false;
 
   @override
   void initState() {
     super.initState();
-    _emailTextEditingController = TextEditingController();
+    _usernameTextEditingController = TextEditingController();
     _passwordTextEditingController = TextEditingController();
     _loadSavedCredentials();
   }
@@ -18,8 +18,8 @@ mixin LoginViewMixin on State<LoginView> {
             .getData<bool>(PreferenceKey.rememberMe) ??
         false;
     if (rememberMe) {
-      final savedEmail = SharedPreferencesService.instance
-              .getData<String>(PreferenceKey.savedEmail) ??
+      final savedUsername = SharedPreferencesService.instance
+              .getData<String>(PreferenceKey.savedEmail) ?? // Reusing savedEmail key for username for now
           '';
       final savedPassword = SharedPreferencesService.instance
               .getData<String>(PreferenceKey.savedPassword) ??
@@ -27,7 +27,7 @@ mixin LoginViewMixin on State<LoginView> {
 
       setState(() {
         _rememberMe = rememberMe;
-        _emailTextEditingController.text = savedEmail;
+        _usernameTextEditingController.text = savedUsername;
         _passwordTextEditingController.text = savedPassword;
       });
     }
@@ -39,7 +39,7 @@ mixin LoginViewMixin on State<LoginView> {
 
     if (_rememberMe) {
       await SharedPreferencesService.instance
-          .setData(PreferenceKey.savedEmail, _emailTextEditingController.text);
+          .setData(PreferenceKey.savedEmail, _usernameTextEditingController.text); // Reusing key
       await SharedPreferencesService.instance.setData(
           PreferenceKey.savedPassword, _passwordTextEditingController.text);
     } else {
@@ -53,24 +53,27 @@ mixin LoginViewMixin on State<LoginView> {
   @override
   void dispose() {
     super.dispose();
-    _emailTextEditingController.dispose();
+    _usernameTextEditingController.dispose();
     _passwordTextEditingController.dispose();
   }
 
   void _showForgotPasswordModalPopup() {
+    // Forgot password might still need email or username, leaving as is for now but passing username controller if needed
+    // However, the View expects email controller. I should probably change variable name in View too.
+    // But since this is a mixin, I can just expose _usernameTextEditingController via getters or just access it.
     showCupertinoModalPopup(
       barrierDismissible: false,
       context: context,
       builder: (context) {
         return ForgotPasswordView(
-          textEditingController: _emailTextEditingController,
+          textEditingController: _usernameTextEditingController,
           forgotPasswordListener: _forgotPasswordListener,
         );
       },
     );
   }
 
-  void _forgotPasswordListener(RegisterState state) async {
+  void _forgotPasswordListener(RegisterState state) {
     if (state is ForgotPasswordCheckSuccess) {
       if (state.data != null && state.data!) {
         if (state.verificationCode != null) {
@@ -93,7 +96,7 @@ mixin LoginViewMixin on State<LoginView> {
       profileBloc.add(SetUser(user: state.user));
 
       Future.microtask(() {
-        context.go(Routes.navigation.path);
+        if (mounted) context.go(Routes.navigation.path);
       });
     } else if (state is LoginFailed) {
       if (state.statusCode == 401) {
@@ -109,27 +112,28 @@ mixin LoginViewMixin on State<LoginView> {
   }
 
   void _submit(LoginBloc loginBloc) async {
-    final email = _emailTextEditingController.text.trim();
+    final username = _usernameTextEditingController.text.trim();
     final password = _passwordTextEditingController.text.trim();
 
     // Debug print untuk input
-    print('Submitting - Email: $email, Password length: ${password.length}');
+    LoggerUtil.debug('Submitting - Username: $username, Password length: ${password.length}');
 
-    HttpResponseModel httpResponseModel = AppHelper.checkEmailAndPassword(
-      email: email,
+    HttpResponseModel httpResponseModel = AppHelper.checkLoginCredentials(
+      username: username,
       password: password,
     );
 
     if (httpResponseModel.statusCode == 200) {
       await _saveCredentials();
+      if (!mounted) return;
       loginBloc.add(
         LoginButtonPressed(
-          email: email,
+          username: username,
           password: password,
         ),
       );
     } else {
-      print('Validation Error: ${httpResponseModel.message}');
+      LoggerUtil.debug('Validation Error: ${httpResponseModel.message}');
       AppHelper.showErrorMessage(
           context: context,
           content: httpResponseModel.message ??
