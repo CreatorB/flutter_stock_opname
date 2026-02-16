@@ -34,7 +34,13 @@ class LoginButton extends StatelessWidget {
                 ? const CupertinoActivityIndicator(
                     color: CupertinoColors.white,
                   )
-                : const Text(LocaleKeys.login).tr(),
+                : Text(
+                    LocaleKeys.login.tr(),
+                    style: const TextStyle(
+                      color: CupertinoColors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
           ),
         );
       },

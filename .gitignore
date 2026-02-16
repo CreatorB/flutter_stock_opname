@@ -1,7 +1,7 @@
 # ==============================================
 # MERGED GITIGNORE FOR FLUTTER PROJECT
 # ==============================================
-
+assets/postman/*
 # Miscellaneous
 *.class
 *.log
@@ -202,6 +202,7 @@ temp/
 # File screenshot atau output temporary
 /screenshots/
 /.metadata/
+releases/*.apk
 
 # File coverage test
 /coverage/

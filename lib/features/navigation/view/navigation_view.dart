@@ -45,6 +45,7 @@ class _NavigationViewState extends State<NavigationView> {
           darkColor: ColorConstants.darkInactive,
         ),
         items: [
+
           BottomNavigationBarItem(
             icon: const Icon(CupertinoIcons.house_alt_fill),
             label: LocaleKeys.home.tr(),

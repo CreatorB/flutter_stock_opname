@@ -11,7 +11,6 @@ import 'package:syathiby/features/auth/register/bloc/register_bloc.dart';
 import 'package:syathiby/features/auth/register/bloc/register_event.dart';
 import 'package:syathiby/features/profile/bloc/profile_bloc.dart';
 import 'package:syathiby/features/profile/bloc/profile_event.dart';
-import 'package:syathiby/core/constants/app_constants.dart';
 import 'package:syathiby/locale_keys.g.dart';
 import 'package:syathiby/common/helpers/app_helper.dart';
 import 'package:syathiby/features/profile/model/user_model.dart';

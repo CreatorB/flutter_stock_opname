@@ -4,6 +4,9 @@
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.16.0-blue) ![Dart](https://img.shields.io/badge/Dart-3.2.0-blue) ![Laravel](https://img.shields.io/badge/Laravel-8-red)
 
+## 📥 Download Demo
+[Download APK Demo (Check Releases)](https://github.com/CreatorB/flutter_stock_opname/releases)
+
 Try to build a simple app that can be used to manage stocks by rebasing
 
 ## 🚀 Installation & Setup

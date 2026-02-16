@@ -33,15 +33,25 @@ class AppHelper {
     return HttpResponseModel(statusCode: 200);
   }
 
+  static HttpResponseModel checkLoginCredentials(
+      {required String username, required String password}) {
+    if (username.isEmpty) {
+      return HttpResponseModel(
+          statusCode: 401, message: LocaleKeys.please_fill_in_all_fields.tr());
+    }
+    if (password.isEmpty) {
+      return HttpResponseModel(
+          statusCode: 401, message: LocaleKeys.enter_valid_password.tr());
+    }
+    return HttpResponseModel(statusCode: 200);
+  }
+
   static HttpResponseModel checkEmailAndPassword(
       {required String email, required String password}) {
     if (!AppConstants.emailRegex.hasMatch(email)) {
       return HttpResponseModel(
           statusCode: 401, message: LocaleKeys.enter_valid_email.tr());
     }
-    // if (!AppConstants.passwordRegex.hasMatch(password)) {
-    //   return HttpResponseModel(statusCode: 401, message: LocaleKeys.enter_valid_password.tr());
-    // }
     if (password.length < 8) {
       return HttpResponseModel(
           statusCode: 401, message: LocaleKeys.enter_valid_password.tr());
