@@ -98,6 +98,25 @@ fvm flutter build ios
 
 ## Misscellaneous
 
+### New Features (Task 0002)
+
+#### Sale Feature
+- Navigate to **PENJUALAN** menu from dashboard
+- Supports **retail** and **grosir** price modes
+- Price area selection (1, 2, 3) for retail
+- Manual price input for grosir mode
+- Cart management with quantity controls
+- Payment via Cash or EDC
+
+#### Stock Opname Feature
+- Access via **OPNAME** menu after completing a sale
+- Scanner integration for barcode input
+- Real-time stock difference calculation
+
+#### Workflow Rules
+- **Sale must be completed before Stock Opname access** - A dialog will prompt if user attempts to access Opname without completing a sale first
+- The sale completion flag resets when the app is closed
+
 ### Multi-language
 
 ```sh

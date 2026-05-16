@@ -18,6 +18,7 @@ import 'package:logger/logger.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
+  await SharedPreferencesService.instance.init();
   await setupLocator();
   LoggerUtil.init(
     Logger(
@@ -35,9 +36,6 @@ void main() async {
   try {
     LoggerUtil.debug('Initializing application...');
 
-    await dotenv.load();
-    await SharedPreferencesService.instance.init();
-    WidgetsFlutterBinding.ensureInitialized();
     await EasyLocalization.ensureInitialized();
     ThemeService.getTheme();
     // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

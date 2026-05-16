@@ -1,10 +1,15 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:syathiby/core/di/injection.dart';
 import 'package:syathiby/core/utils/router/routes.dart';
 import 'package:syathiby/features/auth/login/view/login_view.dart';
 import 'package:syathiby/features/auth/password/view/update_password_view.dart';
 import 'package:syathiby/features/auth/register/view/register_view.dart';
 import 'package:syathiby/features/auth/verify/view/verify_view.dart';
 import 'package:syathiby/features/navigation/view/navigation_view.dart';
+import 'package:syathiby/features/opname/bloc/opname_bloc.dart';
+import 'package:syathiby/features/opname/bloc/opname_event.dart';
+import 'package:syathiby/features/opname/view/opname_view.dart';
 import 'package:syathiby/features/profile/view/profile_view.dart';
 import 'package:syathiby/features/settings/view/settings_view.dart';
 import 'package:syathiby/features/splash/view/splash_view.dart';
@@ -46,6 +51,13 @@ final class RouterManager {
       GoRoute(
         path: Routes.update_password.path,
         builder: (context, state) => const UpdatePasswordView(),
+      ),
+      GoRoute(
+        path: Routes.opname.path,
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<OpnameBloc>()..add(const GetOpnameProductsEvent()),
+          child: const OpnameView(),
+        ),
       ),
     ],
   );

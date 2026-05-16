@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:syathiby/locale_keys.g.dart';
 
 class AppConstants {
+  static const double mdrRate = 0.015;
   static final DateFormat dateformat = DateFormat('dd.MM.yyyy');
   static final DateTime nullDate =
       DateTime.parse("0001-01-01T00:00:00Z").toUtc();

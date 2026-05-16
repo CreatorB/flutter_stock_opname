@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:syathiby/core/models/http_response_model.dart';
+import 'package:syathiby/core/services/device_info_service.dart';
 import 'package:syathiby/core/services/shared_preferences_service.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
 
@@ -10,25 +11,28 @@ class LoginService {
 
   Future<HttpResponseModel> login(String username, String password) async {
     try {
+      final deviceString = DeviceInfoService.instance.getCachedDeviceString();
       final response = await _dio.post(
         '/api/auth/do_login',
         data: FormData.fromMap({
           'username': username,
           'password': password,
         }),
+        options: Options(headers: {'device': deviceString}),
       );
 
       if (response.data['status'] == true) {
         final result = response.data['result'][0];
         final String token = result['token'];
+        final String userId = result['user_id'] ?? '';
+        final String brId = result['br_id'] ?? '';
 
-        // Save token
         await SharedPreferencesService.instance
             .setData<String>(PreferenceKey.authToken, token);
-        
-        // Save user data if needed (optional based on response structure)
-        // Note: The response structure is quite different from the previous implementation
-        // Adjusting to match the new API response
+        await SharedPreferencesService.instance
+            .setData<String>(PreferenceKey.userId, userId);
+        await SharedPreferencesService.instance
+            .setData<String>(PreferenceKey.branchId, brId);
 
         return HttpResponseModel(
           statusCode: response.statusCode,
