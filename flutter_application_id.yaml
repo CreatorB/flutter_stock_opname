@@ -1,7 +1,8 @@
 flutter_application_id:
   android:
-    id: "id.syathiby.app"
-    name: "Syathiby"
+    id: "io.github.creatorbe.stocky"
+    name: "Stocky"
+    gradle_file: "android/app/build.gradle"
   ios:
-    id: "id.syathiby.app"
-    name: "Syathiby"
+    id: "io.github.creatorbe.stocky"
+    name: "Stocky"

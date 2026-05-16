@@ -14,11 +14,11 @@ import 'package:syathiby/common/helpers/ui_helper.dart';
 import 'package:syathiby/core/services/theme_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
-import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
+  await SharedPreferencesService.instance.init();
   await setupLocator();
   LoggerUtil.init(
     Logger(
@@ -36,9 +36,6 @@ void main() async {
   try {
     LoggerUtil.debug('Initializing application...');
 
-    await dotenv.load();
-    await SharedPreferencesService.instance.init();
-    WidgetsFlutterBinding.ensureInitialized();
     await EasyLocalization.ensureInitialized();
     ThemeService.getTheme();
     // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -86,7 +83,7 @@ class _MyAppState extends State<MyApp> {
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
-        title: 'Syathiby',
+        title: 'app_name'.tr(),
         theme: ThemeService.buildTheme(themeState),
         debugShowCheckedModeBanner: false,
         routerConfig: RouterManager.router,

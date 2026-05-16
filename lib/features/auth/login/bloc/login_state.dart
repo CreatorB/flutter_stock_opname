@@ -29,8 +29,8 @@ class LoginSuccess extends LoginState {
 
   const LoginSuccess({
     required this.user,
-    String? message,
-  }) : super(message: message, isLoading: false, statusCode: 200);
+    super.message,
+  }) : super(isLoading: false, statusCode: 200);
 
   @override
   List<Object?> get props => [user, message, isLoading, statusCode];
@@ -38,7 +38,7 @@ class LoginSuccess extends LoginState {
 
 class LoginFailed extends LoginState {
   const LoginFailed({
-    String? message,
-    int? statusCode,
-  }) : super(message: message, isLoading: false, statusCode: statusCode);
+    super.message,
+    super.statusCode,
+  }) : super(isLoading: false);
 }
