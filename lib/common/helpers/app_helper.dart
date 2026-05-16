@@ -9,7 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:syathiby/core/constants/app_constants.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 import 'package:http/http.dart' as http;
 import 'package:syathiby/core/models/http_response_model.dart';
 import 'package:uuid/uuid.dart';
@@ -60,15 +60,25 @@ class AppHelper {
     return HttpResponseModel(statusCode: 200);
   }
 
+  static HttpResponseModel checkLoginCredentials(
+      {required String username, required String password}) {
+    if (username.isEmpty) {
+      return HttpResponseModel(
+          statusCode: 401, message: LocaleKeys.please_fill_in_all_fields.tr());
+    }
+    if (password.isEmpty) {
+      return HttpResponseModel(
+          statusCode: 401, message: LocaleKeys.enter_valid_password.tr());
+    }
+    return HttpResponseModel(statusCode: 200);
+  }
+
   static HttpResponseModel checkEmailAndPassword(
       {required String email, required String password}) {
     if (!AppConstants.emailRegex.hasMatch(email)) {
       return HttpResponseModel(
           statusCode: 401, message: LocaleKeys.enter_valid_email.tr());
     }
-    // if (!AppConstants.passwordRegex.hasMatch(password)) {
-    //   return HttpResponseModel(statusCode: 401, message: LocaleKeys.enter_valid_password.tr());
-    // }
     if (password.length < 8) {
       return HttpResponseModel(
           statusCode: 401, message: LocaleKeys.enter_valid_password.tr());

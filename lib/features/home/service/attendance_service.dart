@@ -146,7 +146,7 @@ class AttendanceService {
           message: data['message']);
     } catch (e) {
       LoggerUtil.error('Get status error:', e);
-      throw e;
+      rethrow;
     }
   }
 

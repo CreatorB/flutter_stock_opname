@@ -1,4 +1,5 @@
 {
+    "app_name": "Stocky",
     "name": "Name",
     "name_is_required": "Name is required",
     "email": "Email",

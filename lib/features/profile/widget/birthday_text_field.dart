@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
 import 'package:syathiby/features/theme/bloc/theme_state.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 import 'package:syathiby/common/helpers/ui_helper.dart';
 
 class BirthdayTextFieldWidget extends StatefulWidget {
@@ -23,7 +23,8 @@ class BirthdayTextFieldWidget extends StatefulWidget {
   });
 
   @override
-  State<BirthdayTextFieldWidget> createState() => _BirthdayTextFieldWidgetState();
+  State<BirthdayTextFieldWidget> createState() =>
+      _BirthdayTextFieldWidgetState();
 }
 
 class _BirthdayTextFieldWidgetState extends State<BirthdayTextFieldWidget> {
@@ -64,7 +65,8 @@ class _BirthdayTextFieldWidgetState extends State<BirthdayTextFieldWidget> {
                       maximumYear: DateTime.now().year,
                       use24hFormat: true,
                       onDateTimeChanged: (DateTime newDateTime) {
-                        _selectedDateTime = DateTime.utc(newDateTime.year, newDateTime.month, newDateTime.day);
+                        _selectedDateTime = DateTime.utc(newDateTime.year,
+                            newDateTime.month, newDateTime.day);
                         widget.onDateTimeChanged(_selectedDateTime);
                       },
                     ),
@@ -91,7 +93,9 @@ class _BirthdayTextFieldWidgetState extends State<BirthdayTextFieldWidget> {
             padding: const EdgeInsets.only(right: 10),
             child: Icon(
               CupertinoIcons.forward,
-              color: themeState.isDark ? ColorConstants.darkSecondaryIcon : ColorConstants.lightSecondaryIcon,
+              color: themeState.isDark
+                  ? ColorConstants.darkSecondaryIcon
+                  : ColorConstants.lightSecondaryIcon,
             ),
           ),
           decoration: BoxDecoration(

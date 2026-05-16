@@ -10,7 +10,7 @@ import 'package:syathiby/features/auth/register/bloc/register_state.dart';
 import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
 import 'package:syathiby/features/theme/bloc/theme_state.dart';
 import 'package:syathiby/common/components/custom_text_field.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 import 'package:syathiby/common/helpers/app_helper.dart';
 import 'package:syathiby/core/models/http_response_model.dart';
 import 'package:syathiby/features/auth/register/widget/background_widget.dart';
@@ -55,7 +55,8 @@ class _RegisterViewState extends State<RegisterView> with RegisterViewMixin {
                                 const TitleWidget(),
                                 const SizedBox(height: 20),
                                 CustomTextField(
-                                  textEditingController: _nameTextEditingController,
+                                  textEditingController:
+                                      _nameTextEditingController,
                                   placeholder: LocaleKeys.name.tr(),
                                   prefixIcon: CupertinoIcons.person,
                                   enabled: !state.isLoading,
@@ -63,7 +64,8 @@ class _RegisterViewState extends State<RegisterView> with RegisterViewMixin {
                                 ),
                                 const SizedBox(height: 10),
                                 CustomTextField(
-                                  textEditingController: _emailTextEditingController,
+                                  textEditingController:
+                                      _emailTextEditingController,
                                   placeholder: LocaleKeys.email.tr(),
                                   prefixIcon: CupertinoIcons.mail,
                                   enabled: !state.isLoading,
@@ -71,7 +73,8 @@ class _RegisterViewState extends State<RegisterView> with RegisterViewMixin {
                                 ),
                                 const SizedBox(height: 10),
                                 CustomTextField(
-                                  textEditingController: _passwordTextEditingController,
+                                  textEditingController:
+                                      _passwordTextEditingController,
                                   placeholder: LocaleKeys.password.tr(),
                                   textInputAction: TextInputAction.done,
                                   enabled: !state.isLoading,

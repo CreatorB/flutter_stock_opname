@@ -6,7 +6,7 @@ import 'package:syathiby/core/utils/router/routes.dart';
 import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
 import 'package:syathiby/features/theme/bloc/theme_state.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 
 class PushToRegisterButton extends StatelessWidget {
   const PushToRegisterButton({super.key});
@@ -21,11 +21,14 @@ class PushToRegisterButton extends StatelessWidget {
             context.go(Routes.register.path);
           },
           child: Text(
-            LocaleKeys.register,
+            LocaleKeys.register.tr(),
             style: TextStyle(
-              color: themeState.isDark ? ColorConstants.darkPrimaryIcon : ColorConstants.lightPrimaryIcon,
+              color: themeState.isDark
+                  ? ColorConstants.darkPrimaryIcon
+                  : ColorConstants.lightPrimaryIcon,
+              fontWeight: FontWeight.bold,
             ),
-          ).tr(),
+          ),
         );
       },
     );

@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
-import 'package:syathiby/generated/locale_keys.g.dart';
+import 'package:syathiby/locale_keys.g.dart';
 import 'package:syathiby/features/home/view/home_view.dart';
 import 'package:syathiby/features/settings/view/settings_view.dart';
 
@@ -34,8 +34,7 @@ class _NavigationViewState extends State<NavigationView> {
       controller: tabController,
       tabBar: CupertinoTabBar(
         border: const Border(),
-        currentIndex: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         activeColor: CupertinoDynamicColor.withBrightness(
           color: ColorConstants.lightPrimaryIcon,
           darkColor: ColorConstants.darkPrimaryIcon,

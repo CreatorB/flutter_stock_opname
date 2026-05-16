@@ -43,10 +43,13 @@ enum PreferenceKey {
   useDeviceTheme("use_device_theme"),
   isDark("is_dark"),
   userData("user_data"),
-  rememberMe("remember_me"),     
-  savedEmail("saved_email"),     
-  savedPassword("saved_password")
-  ;
+  rememberMe("remember_me"),
+  savedEmail("saved_email"),
+  savedPassword("saved_password"),
+  saleCompletedToday("sale_completed_today"),
+  userId("user_id"),
+  branchId("branch_id"),
+  deviceInfo("device_info");
 
   const PreferenceKey(this.key);
   final String key;
