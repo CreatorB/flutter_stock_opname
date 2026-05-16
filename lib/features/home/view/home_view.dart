@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:syathiby/core/di/injection.dart';
+import 'package:syathiby/core/services/shared_preferences_service.dart';
 import 'package:syathiby/features/dummies/laporan_screen.dart';
-import 'package:syathiby/features/dummies/product_list_screen.dart';
 import 'package:syathiby/features/dummies/setoran_screen.dart';
+import 'package:syathiby/features/opname/bloc/opname_bloc.dart';
+import 'package:syathiby/features/opname/bloc/opname_event.dart';
+import 'package:syathiby/features/opname/view/opname_view.dart';
 import 'package:syathiby/features/product/view/product_list_view.dart';
+import 'package:syathiby/features/sale/view/sale_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -29,8 +35,7 @@ class HomeView extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (context) => const ProductListScreen()),
+                MaterialPageRoute(builder: (context) => const SaleView()),
               );
             },
           ),
@@ -39,10 +44,33 @@ class HomeView extends StatelessWidget {
             icon: Icons.inventory,
             label: 'OPNAME',
             onTap: () {
+              final saleCompleted = SharedPreferencesService.instance
+                  .getData<bool>(PreferenceKey.saleCompletedToday) ?? false;
+              if (!saleCompleted) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Perhatian'),
+                    content: const Text(
+                        'Anda harus menyelesaikan transaksi penjualan terlebih dahulu sebelum melakukan stock opname.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
+                return;
+              }
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const ProductListScreen()),
+                  builder: (context) => BlocProvider(
+                    create: (_) => sl<OpnameBloc>()..add(const GetOpnameProductsEvent()),
+                    child: const OpnameView(),
+                  ),
+                ),
               );
             },
           ),

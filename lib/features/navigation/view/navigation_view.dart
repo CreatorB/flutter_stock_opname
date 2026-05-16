@@ -34,8 +34,7 @@ class _NavigationViewState extends State<NavigationView> {
       controller: tabController,
       tabBar: CupertinoTabBar(
         border: const Border(),
-        currentIndex: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         activeColor: CupertinoDynamicColor.withBrightness(
           color: ColorConstants.lightPrimaryIcon,
           darkColor: ColorConstants.darkPrimaryIcon,
@@ -45,7 +44,6 @@ class _NavigationViewState extends State<NavigationView> {
           darkColor: ColorConstants.darkInactive,
         ),
         items: [
-
           BottomNavigationBarItem(
             icon: const Icon(CupertinoIcons.house_alt_fill),
             label: LocaleKeys.home.tr(),
