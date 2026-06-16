@@ -11,17 +11,17 @@ class ProductService {
   ProductService(this._dio);
 
   Future<HttpResponseModel<List<ProductModel>>> getProducts({
-    required String token,
     String searchValue = '',
-    int start = 0,
-    int length = 10,
+    int pStart = 0,
+    int pLength = 10,
   }) async {
     try {
       final response = await _dio.post(
         '/api/product/data',
         data: FormData.fromMap({
-          'token': token,
           'searchValue': searchValue,
+          'pStart': pStart,
+          'pLength': pLength,
         }),
       );
 
@@ -56,15 +56,17 @@ class ProductService {
   }
 
   Future<HttpResponseModel<List<CategoryModel>>> getCategories({
-    required String token,
     String searchValue = '',
+    int pStart = 0,
+    int pLength = 10,
   }) async {
     try {
       final response = await _dio.post(
         '/api/category/data',
         data: FormData.fromMap({
-          'token': token,
           'searchValue': searchValue,
+          'pStart': pStart,
+          'pLength': pLength,
         }),
       );
 
@@ -99,15 +101,17 @@ class ProductService {
   }
 
   Future<HttpResponseModel<List<UnitModel>>> getUnits({
-    required String token,
     String searchValue = '',
+    int pStart = 0,
+    int pLength = 10,
   }) async {
     try {
       final response = await _dio.post(
         '/api/unit/data',
         data: FormData.fromMap({
-          'token': token,
           'searchValue': searchValue,
+          'pStart': pStart,
+          'pLength': pLength,
         }),
       );
 
@@ -134,6 +138,47 @@ class ProductService {
       );
     } catch (e) {
       LoggerUtil.error('Get units unknown error', e);
+      return HttpResponseModel(
+        statusCode: 500,
+        message: e.toString(),
+      );
+    }
+  }
+
+  Future<HttpResponseModel<ProductStockModel>> getStock({
+    required String brId,
+    required String pId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/product/get_stock',
+        data: FormData.fromMap({
+          'br_id': brId,
+          'p_id': pId,
+        }),
+      );
+
+      if (response.data['status'] == true) {
+        final stock = ProductStockModel.fromJson(response.data['result']);
+        return HttpResponseModel(
+          statusCode: response.statusCode,
+          data: stock,
+          message: response.data['msg'],
+        );
+      } else {
+        return HttpResponseModel(
+          statusCode: response.statusCode,
+          message: response.data['msg'] ?? 'Failed to load stock',
+        );
+      }
+    } on DioException catch (e) {
+      LoggerUtil.error('Get stock error', e);
+      return HttpResponseModel(
+        statusCode: e.response?.statusCode ?? 500,
+        message: e.message ?? 'Connection error',
+      );
+    } catch (e) {
+      LoggerUtil.error('Get stock unknown error', e);
       return HttpResponseModel(
         statusCode: 500,
         message: e.toString(),

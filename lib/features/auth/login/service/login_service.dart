@@ -60,13 +60,11 @@ class LoginService {
     }
   }
 
-  Future<HttpResponseModel> validateToken(String token) async {
+  Future<HttpResponseModel> validateToken() async {
     try {
       final response = await _dio.post(
         '/api/auth/validate_token',
-        data: FormData.fromMap({
-          'token': token,
-        }),
+        data: FormData.fromMap({}),
       );
 
       return HttpResponseModel(
