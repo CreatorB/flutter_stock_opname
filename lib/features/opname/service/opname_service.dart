@@ -29,7 +29,7 @@ class OpnameService {
       }
 
       final response = await _dio.post(
-        '/api/warehouse/opname/products',
+        '/api/opname/data',
         data: FormData.fromMap({
           'token': token,
           'user_id': userId,
