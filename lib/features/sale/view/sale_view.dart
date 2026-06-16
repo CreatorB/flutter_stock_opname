@@ -168,7 +168,7 @@ class _SaleViewState extends State<SaleView> {
         leading: const Icon(Icons.inventory_2),
         title: Text(product.pName ?? 'Unknown'),
         subtitle: Text(
-          'Rp ${product.priceArea1 ?? '0'}',
+          'Rp ${_formatNumber((product.priceArea1 ?? '0').toString())}',
           style: const TextStyle(color: Colors.green),
         ),
         trailing: IconButton(
@@ -380,5 +380,14 @@ class _SaleViewState extends State<SaleView> {
       context,
       MaterialPageRoute(builder: (context) => const CartView()),
     );
+  }
+
+  String _formatNumber(String number) {
+    final num = double.tryParse(number);
+    if (num == null) return number;
+    return num.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        );
   }
 }

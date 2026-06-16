@@ -143,8 +143,6 @@ class _LoginViewState extends State<LoginView> with LoginViewMixin {
                                     _submit(loginBloc);
                                   },
                                 ),
-                                const SizedBox(height: 10),
-                                const PushToRegisterButton()
                               ],
                             );
                           },

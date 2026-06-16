@@ -149,3 +149,32 @@ class ProductModel {
     };
   }
 }
+
+class ProductStockModel {
+  final String? pId;
+  final String? pCode;
+  final String? pName;
+  final String? stock;
+  final String? minStock;
+  final String? maxStock;
+
+  ProductStockModel({
+    this.pId,
+    this.pCode,
+    this.pName,
+    this.stock,
+    this.minStock,
+    this.maxStock,
+  });
+
+  factory ProductStockModel.fromJson(Map<String, dynamic> json) {
+    return ProductStockModel(
+      pId: json['p_id']?.toString(),
+      pCode: json['p_code'],
+      pName: json['p_name'],
+      stock: json['stock']?.toString(),
+      minStock: json['min_stock']?.toString(),
+      maxStock: json['max_stock']?.toString(),
+    );
+  }
+}

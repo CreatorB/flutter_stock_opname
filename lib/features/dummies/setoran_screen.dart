@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart'; 
 
 class SetoranScreen extends StatefulWidget {
@@ -11,6 +10,7 @@ class SetoranScreen extends StatefulWidget {
 
 class _SetoranScreenState extends State<SetoranScreen> {
   final TextEditingController _setoranController = TextEditingController();
+  final TextEditingController _setoranDisplayController = TextEditingController();
   double _selisih = 0.0;
 
   final double _penjualanTunai = 1250000.0;
@@ -20,20 +20,37 @@ class _SetoranScreenState extends State<SetoranScreen> {
   void initState() {
     super.initState();
     _selisih = -_penjualanTunai;
-    _setoranController.addListener(_hitungSelisih);
+    _setoranController.addListener(_onSetoranChanged);
+    _setoranDisplayController.addListener(_onDisplayChanged);
   }
 
-  void _hitungSelisih() {
-    final double jumlahDisetor =
-        double.tryParse(_setoranController.text) ?? 0.0;
+  void _onSetoranChanged() {
+    final rawValue = _setoranController.text.replaceAll('.', '');
+    final double jumlahDisetor = double.tryParse(rawValue) ?? 0.0;
+    _setoranDisplayController.text = _formatNumber(rawValue);
+    _setoranDisplayController.selection = TextSelection.fromPosition(
+      TextPosition(offset: _setoranDisplayController.text.length),
+    );
     setState(() {
       _selisih = jumlahDisetor - _penjualanTunai;
     });
   }
 
+  void _onDisplayChanged() {
+    final cursorPos = _setoranDisplayController.selection.baseOffset;
+    final rawValue = _setoranDisplayController.text.replaceAll('.', '');
+    _setoranController.text = rawValue;
+    if (cursorPos <= _setoranDisplayController.text.length) {
+      _setoranDisplayController.selection = TextSelection.fromPosition(
+        TextPosition(offset: cursorPos),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _setoranController.dispose();
+    _setoranDisplayController.dispose();
     super.dispose();
   }
 
@@ -68,12 +85,12 @@ class _SetoranScreenState extends State<SetoranScreen> {
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     const Divider(),
                     _buildRingkasanRow('Total Penjualan Tunai:',
-                        'Rp ${_penjualanTunai.toStringAsFixed(0)}'),
+                        'Rp ${_formatNumber(_penjualanTunai.toStringAsFixed(0))}'),
                     _buildRingkasanRow('Total Penjualan EDC:',
-                        'Rp ${_penjualanEdc.toStringAsFixed(0)}'),
+                        'Rp ${_formatNumber(_penjualanEdc.toStringAsFixed(0))}'),
                     const Divider(),
                     _buildRingkasanRow('Total Pemasukan:',
-                        'Rp ${(_penjualanTunai + _penjualanEdc).toStringAsFixed(0)}',
+                        'Rp ${_formatNumber((_penjualanTunai + _penjualanEdc).toStringAsFixed(0))}',
                         isTotal: true),
                   ],
                 ),
@@ -81,9 +98,8 @@ class _SetoranScreenState extends State<SetoranScreen> {
             ),
             const SizedBox(height: 24),
             TextField(
-              controller: _setoranController,
+              controller: _setoranDisplayController,
               keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: const InputDecoration(
                 labelText: 'Jumlah yang Disetor (Tunai)',
                 border: OutlineInputBorder(),
@@ -92,7 +108,7 @@ class _SetoranScreenState extends State<SetoranScreen> {
             ),
             const SizedBox(height: 16),
             _buildSelisihRow(
-                'Selisih:', 'Rp ${_selisih.toStringAsFixed(0)}', _selisih),
+                'Selisih:', 'Rp ${_formatNumber(_selisih.toStringAsFixed(0))}', _selisih),
             const SizedBox(height: 32),
 
             ElevatedButton(
@@ -162,5 +178,14 @@ class _SetoranScreenState extends State<SetoranScreen> {
         ],
       ),
     );
+  }
+
+  String _formatNumber(String number) {
+    final num = double.tryParse(number);
+    if (num == null) return number;
+    return num.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        );
   }
 }
