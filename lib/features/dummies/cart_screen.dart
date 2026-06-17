@@ -35,7 +35,7 @@ class _CartScreenState extends State<CartScreen> {
                 return ListTile(
                   leading: const Icon(Icons.shopping_basket_outlined),
                   title: Text(item['name']),
-                  subtitle: Text('Rp ${item['price']}'),
+                  subtitle: Text('Rp ${_formatNumber(item['price'].toString())}'),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
                     onPressed: () {
@@ -54,7 +54,7 @@ class _CartScreenState extends State<CartScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'TOTAL : Rp ${total.toStringAsFixed(0)}',
+                  'TOTAL : Rp ${_formatNumber(total.toStringAsFixed(0))}',
                   style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.right,
@@ -84,5 +84,14 @@ class _CartScreenState extends State<CartScreen> {
         ],
       ),
     );
+  }
+
+  String _formatNumber(String number) {
+    final num = double.tryParse(number);
+    if (num == null) return number;
+    return num.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        );
   }
 }

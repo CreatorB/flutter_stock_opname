@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syathiby/features/payment/bloc/payment_bloc.dart';
 import 'package:syathiby/features/sale/bloc/sale_bloc.dart';
@@ -18,13 +17,46 @@ class CashPaymentView extends StatefulWidget {
 
 class _CashPaymentViewState extends State<CashPaymentView> {
   final TextEditingController _cashController = TextEditingController();
+  final TextEditingController _cashDisplayController = TextEditingController();
   double _change = 0;
   bool _hasValidPayment = false;
   bool _isSubmitting = false;
 
   @override
+  void initState() {
+    super.initState();
+    _cashController.addListener(_onCashChanged);
+    _cashDisplayController.addListener(_onDisplayChanged);
+  }
+
+  void _onCashChanged() {
+    final rawValue = _cashController.text.replaceAll('.', '');
+    final cash = double.tryParse(rawValue) ?? 0;
+    _cashDisplayController.text = _formatNumber(rawValue);
+    _cashDisplayController.selection = TextSelection.fromPosition(
+      TextPosition(offset: _cashDisplayController.text.length),
+    );
+    setState(() {
+      _change = cash - widget.total;
+      _hasValidPayment = cash >= widget.total;
+    });
+  }
+
+  void _onDisplayChanged() {
+    final cursorPos = _cashDisplayController.selection.baseOffset;
+    final rawValue = _cashDisplayController.text.replaceAll('.', '');
+    _cashController.text = rawValue;
+    if (cursorPos <= _cashDisplayController.text.length) {
+      _cashDisplayController.selection = TextSelection.fromPosition(
+        TextPosition(offset: cursorPos),
+      );
+    }
+  }
+
+  @override
   void dispose() {
     _cashController.dispose();
+    _cashDisplayController.dispose();
     super.dispose();
   }
 
@@ -79,18 +111,13 @@ class _CashPaymentViewState extends State<CashPaymentView> {
               ),
               const SizedBox(height: 24),
               TextFormField(
-                controller: _cashController,
+                controller: _cashDisplayController,
                 keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(10),
-                ],
                 decoration: const InputDecoration(
                   labelText: 'Jumlah Uang Diterima',
                   prefixText: 'Rp ',
                   border: OutlineInputBorder(),
                 ),
-                onChanged: (value) => _calculateChange(value),
               ),
               const SizedBox(height: 16),
               if (_hasValidPayment) ...[
@@ -131,14 +158,6 @@ class _CashPaymentViewState extends State<CashPaymentView> {
         ),
       ),
     );
-  }
-
-  void _calculateChange(String value) {
-    final cash = double.tryParse(value) ?? 0;
-    setState(() {
-      _change = cash - widget.total;
-      _hasValidPayment = cash >= widget.total;
-    });
   }
 
   void _processPayment(BuildContext context) {
