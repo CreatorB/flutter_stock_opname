@@ -20,16 +20,34 @@ class _EdcPaymentViewState extends State<EdcPaymentView> {
   late double _finalAmount;
   bool _isSubmitting = false;
   final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  final TextEditingController _mdrController = TextEditingController();
+  String? _mdrError;
 
   @override
   void initState() {
     super.initState();
+    final initialMdrRate = (AppConstants.mdrRate * 100).toStringAsFixed(1);
+    _mdrController.text = initialMdrRate;
     _calculateMdr();
   }
 
+  @override
+  void dispose() {
+    _mdrController.dispose();
+    super.dispose();
+  }
+
   void _calculateMdr() {
+    final mdrRate = double.tryParse(_mdrController.text) ?? 0;
+    if (mdrRate > 2) {
+      setState(() {
+        _mdrError = 'Maksimal 2%';
+      });
+      return;
+    }
     setState(() {
-      _mdr = widget.total * AppConstants.mdrRate;
+      _mdrError = null;
+      _mdr = widget.total * (mdrRate / 100);
       _finalAmount = widget.total + _mdr;
     });
   }
@@ -98,11 +116,26 @@ class _EdcPaymentViewState extends State<EdcPaymentView> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('MDR (${(AppConstants.mdrRate * 100).toStringAsFixed(1)}%)'),
+                              SizedBox(
+                                width: 100,
+                                child: TextFormField(
+                                  controller: _mdrController,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  decoration: InputDecoration(
+                                    labelText: 'MDR (%)',
+                                    errorText: _mdrError,
+                                    border: const OutlineInputBorder(),
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                  ),
+                                  onChanged: (_) => _calculateMdr(),
+                                ),
+                              ),
                               Text(
                                 'Rp ${_formatNumber(_mdr.toStringAsFixed(0))}',
                                 style: TextStyle(
                                   color: Colors.orange.shade700,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],

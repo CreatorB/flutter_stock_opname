@@ -67,7 +67,6 @@ class SaleService {
   }
 
   Future<HttpResponseModel<List<SaleModel>>> getSalesHistory({
-    required String token,
     String searchValue = '',
     int start = 0,
     int length = 10,
@@ -76,7 +75,6 @@ class SaleService {
       final response = await _dio.post(
         '/api/sale/history',
         data: FormData.fromMap({
-          'token': token,
           'searchValue': searchValue,
           'start': start,
           'length': length,

@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:syathiby/core/models/http_response_model.dart';
 import 'package:syathiby/core/services/shared_preferences_service.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
-import 'package:syathiby/features/opname/models/opname_model.dart';
 
 class OpnameService {
   final Dio _dio;
@@ -18,10 +17,8 @@ class OpnameService {
           .getData<String>(PreferenceKey.userId);
       final brId = SharedPreferencesService.instance
           .getData<String>(PreferenceKey.branchId);
-      final token = SharedPreferencesService.instance
-          .getData<String>(PreferenceKey.authToken);
 
-      if (userId == null || brId == null || token == null) {
+      if (userId == null || brId == null) {
         return HttpResponseModel(
           statusCode: 401,
           message: 'Unauthorized: Missing user data',
@@ -31,7 +28,6 @@ class OpnameService {
       final response = await _dio.post(
         '/api/opname/data',
         data: FormData.fromMap({
-          'token': token,
           'user_id': userId,
           'br_id': brId,
           'ra_id': raId ?? '',
@@ -180,6 +176,60 @@ class OpnameService {
       );
     }
   }
+
+  Future<HttpResponseModel<List<OpnameDraftResponseModel>>> getDraft({
+    String searchValue = '',
+  }) async {
+    try {
+      final userId = SharedPreferencesService.instance
+          .getData<String>(PreferenceKey.userId);
+      final brId = SharedPreferencesService.instance
+          .getData<String>(PreferenceKey.branchId);
+
+      if (userId == null || brId == null) {
+        return HttpResponseModel(
+          statusCode: 401,
+          message: 'Unauthorized: Missing user data',
+        );
+      }
+
+      final response = await _dio.post(
+        '/api/opname/get_draft',
+        data: FormData.fromMap({
+          'user_id': userId,
+          'br_id': brId,
+          'searchValue': searchValue,
+        }),
+      );
+
+      if (response.data['status'] == true) {
+        final List<dynamic> result = response.data['result'] ?? [];
+        final drafts = result.map((e) => OpnameDraftResponseModel.fromJson(e)).toList();
+        return HttpResponseModel(
+          statusCode: response.statusCode,
+          data: drafts,
+          message: response.data['msg'],
+        );
+      } else {
+        return HttpResponseModel(
+          statusCode: response.statusCode,
+          message: response.data['msg'] ?? 'Failed to load draft',
+        );
+      }
+    } on DioException catch (e) {
+      LoggerUtil.error('Get opname draft error', e);
+      return HttpResponseModel(
+        statusCode: e.response?.statusCode ?? 500,
+        message: e.message ?? 'Connection error',
+      );
+    } catch (e) {
+      LoggerUtil.error('Get opname draft unknown error', e);
+      return HttpResponseModel(
+        statusCode: 500,
+        message: e.toString(),
+      );
+    }
+  }
 }
 
 class OpnameSaveResponseModel {
@@ -247,6 +297,38 @@ class OpnameProductResponseModel {
       stock: json['stock']?.toString(),
       raId: json['ra_id']?.toString(),
       raName: json['ra_name'],
+    );
+  }
+}
+
+class OpnameDraftResponseModel {
+  final String? pId;
+  final String? pCode;
+  final String? pName;
+  final String? qty;
+  final String? raId;
+  final String? raName;
+  final String? systemStock;
+
+  OpnameDraftResponseModel({
+    this.pId,
+    this.pCode,
+    this.pName,
+    this.qty,
+    this.raId,
+    this.raName,
+    this.systemStock,
+  });
+
+  factory OpnameDraftResponseModel.fromJson(Map<String, dynamic> json) {
+    return OpnameDraftResponseModel(
+      pId: json['p_id']?.toString(),
+      pCode: json['p_code'],
+      pName: json['p_name'],
+      qty: json['qty']?.toString(),
+      raId: json['ra_id']?.toString(),
+      raName: json['ra_name'],
+      systemStock: json['system_stock']?.toString(),
     );
   }
 }
