@@ -5,7 +5,7 @@
 ![Flutter](https://img.shields.io/badge/Flutter-3.16.0-blue) ![Dart](https://img.shields.io/badge/Dart-3.2.0-blue) ![Laravel](https://img.shields.io/badge/Laravel-8-red)
 
 ## 📥 Download Demo
-[Download APK Demo](./showcase/mobile-store-release.apk)
+[Download APK Demo](https://github.com/CreatorB/flutter_stock_opname/raw/refs/heads/dev/showcase/mobile-store-release.apk)
 
 Try to build a simple app that can be used to manage stocks by rebasing
 
