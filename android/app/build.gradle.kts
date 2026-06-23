@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.creatorbe.syathiby"
+    namespace = "io.github.creatorbe.mobilestore"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "io.github.creatorbe.syathiby"
+        applicationId = "io.github.creatorbe.mobilestore"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

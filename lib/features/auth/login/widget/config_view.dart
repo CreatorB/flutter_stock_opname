@@ -17,7 +17,7 @@ class _ConfigViewState extends State<ConfigView> {
   void initState() {
     super.initState();
 
-    _urlController = TextEditingController(text: "banghasyim.net/POSKASIR/api/");
+    _urlController = TextEditingController(text: "banghasyim.net/ZAHIR4/api/");
   }
 
   @override
