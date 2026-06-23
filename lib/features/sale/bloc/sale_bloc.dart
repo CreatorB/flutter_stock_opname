@@ -167,7 +167,7 @@ class SaleBloc extends Bloc<SaleEvent, SaleState> {
 
         String printId = saleData?.id ?? response.data!.saleId ?? '';
         String printUrl =
-            'https://banghasyim.net/POSKASIR/sale/sale/prints/$printId';
+            'https://banghasyim.net/ZAHIR4/sale/sale/prints/$printId';
         emit(SaleSuccess(sale: saleData, printUrl: printUrl));
       } else {
         emit(SaleError(response.message ?? 'Failed to submit sale'));
