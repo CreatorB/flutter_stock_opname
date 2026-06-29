@@ -20,6 +20,7 @@ class PriceSelectorWidget extends StatefulWidget {
 class _PriceSelectorWidgetState extends State<PriceSelectorWidget> {
   late TextEditingController _manualPriceController;
   late TextEditingController _qtyController;
+  late TextEditingController _qtyDisplayController;
 
   @override
   void initState() {
@@ -28,12 +29,44 @@ class _PriceSelectorWidgetState extends State<PriceSelectorWidget> {
         TextEditingController(text: widget.cartItem.manualPrice ?? '');
     _qtyController =
         TextEditingController(text: widget.cartItem.quantity.toString());
+    _qtyDisplayController = TextEditingController(
+      text: _formatNumber(widget.cartItem.quantity.toString()),
+    );
+    _qtyController.addListener(_onQtyChanged);
+    _qtyDisplayController.addListener(_onQtyDisplayChanged);
+  }
+
+  void _onQtyChanged() {
+    final rawValue = _qtyController.text;
+    final formatted = _formatNumber(rawValue);
+    if (_qtyDisplayController.text != formatted) {
+      _qtyDisplayController.text = formatted;
+      _qtyDisplayController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _qtyDisplayController.text.length),
+      );
+    }
+  }
+
+  void _onQtyDisplayChanged() {
+    final cursorPos = _qtyDisplayController.selection.baseOffset;
+    final rawValue = _qtyDisplayController.text.replaceAll('.', '');
+    if (_qtyController.text != rawValue) {
+      _qtyController.text = rawValue;
+      if (cursorPos <= _qtyDisplayController.text.length) {
+        _qtyDisplayController.selection = TextSelection.fromPosition(
+          TextPosition(offset: cursorPos),
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
+    _qtyController.removeListener(_onQtyChanged);
+    _qtyDisplayController.removeListener(_onQtyDisplayChanged);
     _manualPriceController.dispose();
     _qtyController.dispose();
+    _qtyDisplayController.dispose();
     super.dispose();
   }
 
@@ -148,24 +181,26 @@ class _PriceSelectorWidgetState extends State<PriceSelectorWidget> {
 
   Widget _buildQuantityInput() {
     return TextFormField(
-      controller: _qtyController,
+      controller: _qtyDisplayController,
       keyboardType: TextInputType.number,
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(4),
+        LengthLimitingTextInputFormatter(7),
       ],
       decoration: const InputDecoration(
         labelText: 'Qty',
         border: OutlineInputBorder(),
       ),
       validator: (value) {
-        final qty = int.tryParse(value ?? '');
+        final raw = (value ?? '').replaceAll('.', '');
+        final qty = int.tryParse(raw);
         if (qty == null || qty < 1) return 'Min 1';
         if (qty > 9999) return 'Max 9999';
         return null;
       },
       onChanged: (value) {
-        final qty = int.tryParse(value) ?? 1;
+        final raw = value.replaceAll('.', '');
+        final qty = int.tryParse(raw) ?? 1;
         widget.onUpdate(
           qty,
           widget.cartItem.priceMode == PriceMode.retail ? 'retail' : 'grosir',
