@@ -106,7 +106,7 @@ class CartItemWidget extends StatelessWidget {
                   : null,
             ),
             Text(
-              '${cartItem.quantity}',
+              _formatNumber(cartItem.quantity.toString()),
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
