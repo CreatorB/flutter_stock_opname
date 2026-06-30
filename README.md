@@ -2,7 +2,7 @@
 
 ## 📱 Flutter Stock Opname
 
-![Flutter](https://img.shields.io/badge/Flutter-3.16.0-blue) ![Dart](https://img.shields.io/badge/Dart-3.2.0-blue) ![Laravel](https://img.shields.io/badge/Laravel-8-red)
+![Flutter](https://img.shields.io/badge/Flutter-3.16.0-blue) ![Dart](https://img.shields.io/badge/Dart-3.2.0-blue)
 
 ## 📥 Download Demo
 [Download APK Demo](https://github.com/CreatorB/flutter_stock_opname/raw/refs/heads/dev/showcase/mobile-store-release.apk)
