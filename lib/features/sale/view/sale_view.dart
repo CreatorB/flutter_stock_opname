@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -21,18 +23,49 @@ class SaleView extends StatefulWidget {
 
 class _SaleViewState extends State<SaleView> {
   final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
   bool _isScanning = false;
+  ProductBloc? _productBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      if (!mounted) return;
+      setState(() {});
+      _onSearchChanged(_searchController.text);
+    });
+  }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      _productBloc?.add(GetProductsEvent(searchValue: value.trim()));
+    });
+  }
+
+  void _clearSearch() {
+    _searchDebounce?.cancel();
+    _searchController.clear();
+    _productBloc?.add(const GetProductsEvent());
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<ProductBloc>()..add(const GetProductsEvent()),
+      create: (_) {
+        final bloc = sl<ProductBloc>()..add(const GetProductsEvent());
+        _productBloc = bloc;
+        return bloc;
+      },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Penjualan'),
@@ -122,6 +155,7 @@ class _SaleViewState extends State<SaleView> {
       padding: const EdgeInsets.all(16),
       child: TextField(
         controller: _searchController,
+        textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           hintText: 'Cari produk...',
           prefixIcon: const Icon(Icons.search),
@@ -131,17 +165,13 @@ class _SaleViewState extends State<SaleView> {
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    context
-                        .read<ProductBloc>()
-                        .add(const GetProductsEvent());
-                  },
+                  onPressed: _clearSearch,
                 )
               : null,
         ),
         onSubmitted: (value) {
-          context.read<ProductBloc>().add(GetProductsEvent(searchValue: value));
+          _searchDebounce?.cancel();
+          _productBloc?.add(GetProductsEvent(searchValue: value.trim()));
         },
       ),
     );
@@ -360,10 +390,9 @@ class _SaleViewState extends State<SaleView> {
               onDetect: (capture) {
                 final barcode = capture.barcodes.firstOrNull;
                 if (barcode?.rawValue != null) {
+                  _searchDebounce?.cancel();
                   _searchController.text = barcode!.rawValue!;
-                  context
-                      .read<ProductBloc>()
-                      .add(GetProductsEvent(searchValue: barcode.rawValue!));
+                  _productBloc?.add(GetProductsEvent(searchValue: barcode.rawValue!));
                   Navigator.pop(ctx);
                   setState(() => _isScanning = false);
                 }
