@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/features/payment/bloc/payment_bloc.dart';
 import 'package:syathiby/features/sale/bloc/sale_bloc.dart';
 import 'package:syathiby/features/sale/bloc/sale_event.dart';
@@ -63,99 +64,140 @@ class _CashPaymentViewState extends State<CashPaymentView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pembayaran Tunai'),
-      ),
-      body: BlocListener<SaleBloc, SaleState>(
-        listener: (context, state) {
-          if (state is SaleSuccess) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ReceiptView(printUrl: state.printUrl),
+      backgroundColor: ColorConstants.darkBackground,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            backgroundColor: ColorConstants.secondaryBlue,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text(
+                'Pembayaran Tunai',
+                style: TextStyle(color: ColorConstants.whiteText, fontWeight: FontWeight.bold),
               ),
-              (route) => route.isFirst,
-            );
-          } else if (state is SaleError) {
-            setState(() => _isSubmitting = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
+              centerTitle: true,
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [ColorConstants.secondaryBlue, ColorConstants.secondaryBlueDark],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
               ),
-            );
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      const Text('Total Bayar'),
-                      Text(
-                        'Rp ${_formatNumber(widget.total.toStringAsFixed(0))}',
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: BlocListener<SaleBloc, SaleState>(
+              listener: (context, state) {
+                if (state is SaleSuccess) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ReceiptView(printUrl: state.printUrl),
+                    ),
+                    (route) => route.isFirst,
+                  );
+                } else if (state is SaleError) {
+                  setState(() => _isSubmitting = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: ColorConstants.redError,
+                    ),
+                  );
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: ColorConstants.glassCard,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: ColorConstants.glassBorder),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text('Total Bayar', style: TextStyle(color: ColorConstants.grayText)),
+                          Text(
+                            'Rp ${_formatNumber(widget.total.toStringAsFixed(0))}',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                                color: ColorConstants.greenPrice,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    TextField(
+                      controller: _cashDisplayController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: ColorConstants.whiteText),
+                      decoration: InputDecoration(
+                        labelText: 'Jumlah Uang Diterima',
+                        prefixText: 'Rp ',
+                        labelStyle: const TextStyle(color: ColorConstants.grayText),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: ColorConstants.glassBorder),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: ColorConstants.darkPrimaryColor),
+                        ),
+                        filled: true,
+                        fillColor: ColorConstants.glassCard,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (_hasValidPayment) ...[
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: ColorConstants.greenPrice.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: ColorConstants.greenPrice.withOpacity(0.3)),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text('Kembalian', style: TextStyle(color: ColorConstants.grayText)),
+                            Text(
+                              'Rp ${_formatNumber(_change.toStringAsFixed(0))}',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              color: ColorConstants.greenPrice,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _cashDisplayController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Jumlah Uang Diterima',
-                  prefixText: 'Rp ',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (_hasValidPayment) ...[
-                Card(
-                  color: Colors.green.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        const Text('Kembalian'),
-                        Text(
-                          'Rp ${_formatNumber(_change.toStringAsFixed(0))}',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green.shade700,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _isSubmitting ? null : () => _processPayment(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorConstants.darkPrimaryColor,
+                        foregroundColor: ColorConstants.whiteText,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: _isSubmitting
+                          ? const CircularProgressIndicator(color: ColorConstants.whiteText)
+                          : const Text('BAYAR', style: TextStyle(fontSize: 18)),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-              const Spacer(),
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : () => _processPayment(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: _isSubmitting
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('BAYAR', style: TextStyle(fontSize: 18)),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -166,7 +208,7 @@ class _CashPaymentViewState extends State<CashPaymentView> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Jumlah uang tidak cukup'),
-          backgroundColor: Colors.red,
+          backgroundColor: ColorConstants.redError,
         ),
       );
       return;

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -17,10 +18,9 @@ import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/core/constants/supported_locales.dart';
 import 'package:syathiby/locale_keys.g.dart';
 import 'package:syathiby/common/helpers/ui_helper.dart';
+import 'package:syathiby/common/widgets/gradient_header.dart';
+import 'package:syathiby/common/widgets/glow_card.dart';
 import 'package:syathiby/features/profile/widget/profile_photo_widget.dart';
-import 'package:syathiby/features/settings/widget/list_section_widet.dart';
-import 'package:syathiby/features/settings/widget/list_tile_widget.dart';
-import 'package:syathiby/common/widgets/custom_scaffold.dart';
 import 'package:syathiby/common/widgets/unauthenticated_user_widget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 part "settings_view_mixin.dart";
@@ -55,99 +55,135 @@ class _SettingsViewState extends State<SettingsView> with SettingsViewMixin {
       builder: (context, loginState) {
         return BlocBuilder<ProfileBloc, ProfileState>(
           builder: (context, profileState) {
-            return BlocBuilder<ThemeBloc, ThemeState>(
-              builder: (context, themeState) {
-                return CustomScaffold(
-                  onRefresh: () async {
-                    await Future<void>.delayed(
-                      const Duration(milliseconds: 1000),
-                    );
-                  },
-                  title: LocaleKeys.settings,
+            return Scaffold(
+              body: SingleChildScrollView(
+                child: Column(
                   children: [
-                    profileState.user != null
-                        ? Column(
-                            children: [
-                              ListSectionWidget(
-                                hasLeading: false,
-                                dividerMargin: 0,
-                                children: [
-                                  CupertinoListTile(
-                                    onTap: () {
-                                      context.push(Routes.profile.path);
-                                    },
-                                    padding: const EdgeInsets.all(10),
-                                    backgroundColorActivated: themeState.isDark
-                                        ? ColorConstants
-                                            .darkBackgroundColorActivated
-                                        : ColorConstants
-                                            .lightBackgroundColorActivated,
-                                    title: Text(
-                                      "${profileState.user?.name}",
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 20,
+                    const GradientHeader(title: 'Pengaturan'),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          profileState.user != null
+                              ? GlowCard(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    children: [
+                                      ListTile(
+                                        onTap: () {
+                                          context.push(Routes.profile.path);
+                                        },
+                                        contentPadding: EdgeInsets.zero,
+                                        leading: SizedBox(
+                                          width: UIHelper.deviceWidth * 0.12,
+                                          child: ProfilePhotoWidget(
+                                              imageUrl: profileState.user!.photoUrl),
+                                        ),
+                                        title: Text(
+                                          "${profileState.user?.name}",
+                                          style: const TextStyle(
+                                            color: ColorConstants.whiteText,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          profileState.user!.email,
+                                          style: const TextStyle(
+                                            color: ColorConstants.grayText,
+                                          ),
+                                        ),
+                                        trailing: const Icon(
+                                          CupertinoIcons.forward,
+                                          color: ColorConstants.grayText,
+                                        ),
                                       ),
-                                    ),
-                                    subtitle: Text(profileState.user!.email),
-                                    leadingSize: UIHelper.deviceWidth * 0.12,
-                                    leading: ProfilePhotoWidget(
-                                        imageUrl: profileState.user!.photoUrl),
-                                    trailing: Icon(
-                                      CupertinoIcons.forward,
-                                      color: themeState.isDark
-                                          ? ColorConstants.darkSecondaryIcon
-                                          : ColorConstants.lightSecondaryIcon,
-                                    ),
+                                      Divider(height: 1, color: ColorConstants.glassBorder),
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: Text(
+                                          "${LocaleKeys.you_joined_on_prefix.tr()}${AppConstants.dateformat.format(profileState.user!.createdAt)}${LocaleKeys.you_joined_on_suffix.tr()} ($_appVersion)",
+                                          style: const TextStyle(
+                                            color: ColorConstants.grayText,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  ListTileWidget(
-                                    leadingIcon: CupertinoIcons.calendar_today,
-                                    leadingColor: CupertinoColors.systemCyan,
-                                    title:
-                                        "${LocaleKeys.you_joined_on_prefix.tr()}${AppConstants.dateformat.format(profileState.user!.createdAt)}${LocaleKeys.you_joined_on_suffix.tr()} ($_appVersion)",
-                                    titleTextStyle: TextStyle(
-                                        color: themeState.isDark
-                                            ? ColorConstants.darkInactive
-                                            : ColorConstants.lightInactive),
-                                  )
-                                ],
-                              ),
-                            ],
-                          )
-                        : const UnauthenticatedUserWidget(),
-                    ListSectionWidget(
-                      children: [
-                        ListTileWidget(
-                          title: LocaleKeys.theme.tr(),
-                          leadingIcon: CupertinoIcons.sun_min_fill,
-                          leadingColor: CupertinoColors.systemBlue,
-                          onTap: () => _showSelectThemeSheet(context),
-                        ),
-                        ListTileWidget(
-                          title: LocaleKeys.language.tr(),
-                          leadingIcon: CupertinoIcons.globe,
-                          leadingColor: CupertinoColors.systemGreen,
-                          onTap: () => _showSelectLanguageSheet(context),
-                        ),
-                      ],
-                    ),
-                    ListSectionWidget(
-                      children: [
-                        ListTileWidget(
-                          title: LocaleKeys.logout.tr(),
-                          leadingIcon: CupertinoIcons.square_arrow_left_fill,
-                          leadingColor: CupertinoColors.systemRed,
-                          onTap: () => _showLogOutDialog(context, loginBloc),
-                        ),
-                      ],
+                                )
+                              : const UnauthenticatedUserWidget(),
+                          const SizedBox(height: 12),
+                          _buildSettingsTile(
+                            title: LocaleKeys.theme.tr(),
+                            icon: CupertinoIcons.sun_min_fill,
+                            iconColor: CupertinoColors.systemBlue,
+                            onTap: () => _showSelectThemeSheet(context),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildSettingsTile(
+                            title: LocaleKeys.language.tr(),
+                            icon: CupertinoIcons.globe,
+                            iconColor: CupertinoColors.systemGreen,
+                            onTap: () => _showSelectLanguageSheet(context),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildSettingsTile(
+                            title: LocaleKeys.logout.tr(),
+                            icon: CupertinoIcons.square_arrow_left_fill,
+                            iconColor: CupertinoColors.systemRed,
+                            onTap: () => _showLogOutDialog(context, loginBloc),
+                          ),
+                          const SizedBox(height: 100),
+                        ],
+                      ),
                     ),
                   ],
-                );
-              },
+                ),
+              ),
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildSettingsTile({
+    required String title,
+    required IconData icon,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    return GlowCard(
+      padding: const EdgeInsets.all(16),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              color: ColorConstants.whiteText,
+              fontSize: 16,
+            ),
+          ),
+          const Spacer(),
+          const Icon(
+            CupertinoIcons.forward,
+            color: ColorConstants.grayText,
+          ),
+        ],
+      ),
     );
   }
 }

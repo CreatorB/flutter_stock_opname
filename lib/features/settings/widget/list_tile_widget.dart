@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
 import 'package:syathiby/features/theme/bloc/theme_state.dart';
-import 'package:syathiby/core/constants/color_constants.dart';
 
 class ListTileWidget extends StatelessWidget {
   final String title;
@@ -16,7 +15,7 @@ class ListTileWidget extends StatelessWidget {
     super.key,
     required this.title,
     this.leadingIcon,
-    this.leadingColor = CupertinoColors.systemBlue,
+    this.leadingColor = Colors.blue,
     this.onTap,
     this.titleTextStyle,
   });
@@ -25,47 +24,50 @@ class ListTileWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, state) {
-        return CupertinoListTile(
-          // backgroundColor: CupertinoDynamicColor.withBrightness(
-          //   color: ColorConstants.lightItem,
-          //   darkColor: ColorConstants.darkItem,
-          // ),
-          backgroundColor: Colors.transparent,
-          backgroundColorActivated:
-              state.isDark ? ColorConstants.darkBackgroundColorActivated : ColorConstants.lightBackgroundColorActivated,
-          onTap: onTap,
-          title: Text(
-            title,
-            style: titleTextStyle,
-          ),
-          leading: leadingIcon == null
-              ? null
-              : Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  decoration: BoxDecoration(
-                    color: leadingColor,
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(5),
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  if (leadingIcon != null) ...[
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: leadingColor?.withOpacity(0.2),
+                        borderRadius: const BorderRadius.all(Radius.circular(5)),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        leadingIcon,
+                        color: leadingColor,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: titleTextStyle ??
+                          const TextStyle(
+                            color: ColorConstants.whiteText,
+                            fontSize: 16,
+                          ),
                     ),
                   ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    leadingIcon,
-                    color: CupertinoColors.white,
-                    size: 20,
-                  ),
-                ),
-          trailing: onTap == null
-              ? null
-              : BlocBuilder<ThemeBloc, ThemeState>(
-                  builder: (context, state) {
-                    return Icon(
-                      CupertinoIcons.forward,
-                      color: state.isDark ? ColorConstants.darkSecondaryIcon : ColorConstants.lightSecondaryIcon,
-                    );
-                  },
-                ),
+                  if (onTap != null)
+                    Icon(
+                      Icons.chevron_right,
+                      color: ColorConstants.darkSecondaryIcon,
+                    ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );

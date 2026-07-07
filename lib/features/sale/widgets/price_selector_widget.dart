@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
+import 'package:syathiby/common/widgets/glow_card.dart';
 import 'package:syathiby/features/sale/models/cart_item_model.dart';
 
 class PriceSelectorWidget extends StatefulWidget {
@@ -88,6 +90,18 @@ class _PriceSelectorWidgetState extends State<PriceSelectorWidget> {
                       ? 'retail'
                       : 'grosir'
                 },
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.resolveWith((states) {
+                    if (states.contains(MaterialState.selected)) {
+                      return ColorConstants.darkPrimaryIcon;
+                    }
+                    return ColorConstants.darkTextField;
+                  }),
+                  foregroundColor: MaterialStatePropertyAll(Colors.white),
+                  shape: MaterialStatePropertyAll(
+                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
                 onSelectionChanged: (selection) {
                   widget.onUpdate(
                     widget.cartItem.quantity,
@@ -112,27 +126,38 @@ class _PriceSelectorWidgetState extends State<PriceSelectorWidget> {
   }
 
   Widget _buildRetailSelector() {
-    return DropdownButtonFormField<String>(
-      value: widget.cartItem.selectedPriceArea?.name ?? 'area1',
-      decoration: const InputDecoration(
-        labelText: 'Pilih Harga',
-        border: OutlineInputBorder(),
+    return Container(
+      decoration: BoxDecoration(
+        color: ColorConstants.darkTextField,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: ColorConstants.glassBorder),
       ),
-      items: const [
-        DropdownMenuItem(value: 'area1', child: Text('Harga 1')),
-        DropdownMenuItem(value: 'area2', child: Text('Harga 2')),
-        DropdownMenuItem(value: 'area3', child: Text('Harga 3')),
-      ],
-      onChanged: (value) {
-        if (value != null) {
-          widget.onUpdate(
-            widget.cartItem.quantity,
-            'retail',
-            value,
-            null,
-          );
-        }
-      },
+      child: DropdownButtonFormField<String>(
+        value: widget.cartItem.selectedPriceArea?.name ?? 'area1',
+        style: const TextStyle(color: ColorConstants.whiteText),
+        dropdownColor: ColorConstants.glassCardSolid,
+        decoration: const InputDecoration(
+          labelText: 'Pilih Harga',
+          labelStyle: TextStyle(color: ColorConstants.grayText),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
+        items: const [
+          DropdownMenuItem(value: 'area1', child: Text('Harga 1')),
+          DropdownMenuItem(value: 'area2', child: Text('Harga 2')),
+          DropdownMenuItem(value: 'area3', child: Text('Harga 3')),
+        ],
+        onChanged: (value) {
+          if (value != null) {
+            widget.onUpdate(
+              widget.cartItem.quantity,
+              'retail',
+              value,
+              null,
+            );
+          }
+        },
+      ),
     );
   }
 
@@ -140,30 +165,42 @@ class _PriceSelectorWidgetState extends State<PriceSelectorWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextFormField(
-          controller: _manualPriceController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          decoration: InputDecoration(
-            labelText: 'Harga Grosir',
-            border: const OutlineInputBorder(),
-            errorText: _validateGrosirPrice(),
+        Container(
+          decoration: BoxDecoration(
+            color: ColorConstants.darkTextField,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: ColorConstants.glassBorder),
           ),
-          onChanged: (value) {
-            widget.onUpdate(
-              widget.cartItem.quantity,
-              'grosir',
-              null,
-              value,
-            );
-          },
+          child: TextFormField(
+            controller: _manualPriceController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            style: const TextStyle(color: ColorConstants.whiteText),
+            cursorColor: ColorConstants.darkPrimaryIcon,
+            decoration: InputDecoration(
+              labelText: 'Harga Grosir',
+              labelStyle: const TextStyle(color: ColorConstants.grayText),
+              errorText: _validateGrosirPrice(),
+              errorStyle: const TextStyle(color: ColorConstants.redError),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            onChanged: (value) {
+              widget.onUpdate(
+                widget.cartItem.quantity,
+                'grosir',
+                null,
+                value,
+              );
+            },
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           'Min: Rp ${_formatNumber(widget.cartItem.buyPriceDouble.toStringAsFixed(0))}',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
-            color: Colors.grey[600],
+            color: ColorConstants.grayText,
           ),
         ),
       ],
@@ -180,34 +217,45 @@ class _PriceSelectorWidgetState extends State<PriceSelectorWidget> {
   }
 
   Widget _buildQuantityInput() {
-    return TextFormField(
-      controller: _qtyDisplayController,
-      keyboardType: TextInputType.number,
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(7),
-      ],
-      decoration: const InputDecoration(
-        labelText: 'Qty',
-        border: OutlineInputBorder(),
+    return Container(
+      decoration: BoxDecoration(
+        color: ColorConstants.darkTextField,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: ColorConstants.glassBorder),
       ),
-      validator: (value) {
-        final raw = (value ?? '').replaceAll('.', '');
-        final qty = int.tryParse(raw);
-        if (qty == null || qty < 1) return 'Min 1';
-        if (qty > 9999) return 'Max 9999';
-        return null;
-      },
-      onChanged: (value) {
-        final raw = value.replaceAll('.', '');
-        final qty = int.tryParse(raw) ?? 1;
-        widget.onUpdate(
-          qty,
-          widget.cartItem.priceMode == PriceMode.retail ? 'retail' : 'grosir',
-          widget.cartItem.selectedPriceArea?.name,
-          widget.cartItem.manualPrice,
-        );
-      },
+      child: TextFormField(
+        controller: _qtyDisplayController,
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(7),
+        ],
+        style: const TextStyle(color: ColorConstants.whiteText),
+        cursorColor: ColorConstants.darkPrimaryIcon,
+        decoration: const InputDecoration(
+          labelText: 'Qty',
+          labelStyle: TextStyle(color: ColorConstants.grayText),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        validator: (value) {
+          final raw = (value ?? '').replaceAll('.', '');
+          final qty = int.tryParse(raw);
+          if (qty == null || qty < 1) return 'Min 1';
+          if (qty > 9999) return 'Max 9999';
+          return null;
+        },
+        onChanged: (value) {
+          final raw = value.replaceAll('.', '');
+          final qty = int.tryParse(raw) ?? 1;
+          widget.onUpdate(
+            qty,
+            widget.cartItem.priceMode == PriceMode.retail ? 'retail' : 'grosir',
+            widget.cartItem.selectedPriceArea?.name,
+            widget.cartItem.manualPrice,
+          );
+        },
+      ),
     );
   }
 
