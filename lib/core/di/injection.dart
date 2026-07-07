@@ -28,7 +28,11 @@ Future<void> setupLocator() async {
   sl.registerFactory(() => LoginBloc(loginService: sl()));
   sl.registerFactory(() => ProductBloc(productService: sl()));
   sl.registerFactory(() => SaleBloc(saleService: sl()));
-  sl.registerFactory(() => OpnameBloc(opnameService: sl(), rackService: sl()));
+  sl.registerFactory(() => OpnameBloc(
+        opnameService: sl(),
+        rackService: sl(),
+        productService: sl(),
+      ));
   sl.registerFactory(() => PaymentBloc());
 
   // Services

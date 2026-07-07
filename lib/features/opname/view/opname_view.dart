@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -14,23 +16,50 @@ class OpnameView extends StatefulWidget {
   State<OpnameView> createState() => _OpnameViewState();
 }
 
-class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateMixin {
+class _OpnameViewState extends State<OpnameView>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
+  OpnameBloc? _opnameBloc;
   bool _isScanning = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    context.read<OpnameBloc>().add(const GetOpnameProductsEvent());
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_opnameBloc == null) {
+      _opnameBloc = context.read<OpnameBloc>();
+    }
   }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    final text = _searchController.text;
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      _opnameBloc?.add(GetOpnameProductsEvent(searchValue: text.trim()));
+    });
+  }
+
+  void _clearSearch() {
+    _searchDebounce?.cancel();
+    _searchController.clear();
+    _opnameBloc?.add(const GetOpnameProductsEvent(searchValue: ''));
   }
 
   @override
@@ -50,10 +79,10 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
           ],
         ),
         actions: [
-          _buildRackDropdown(),
+          _buildRackAction(),
           IconButton(
-            icon: const Icon(Icons.photo_library),
-            onPressed: () => _pickImage(context),
+            icon: Icon(_isScanning ? Icons.close : Icons.qr_code_scanner),
+            onPressed: () => _toggleScanner(context),
           ),
         ],
       ),
@@ -75,38 +104,68 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildRackDropdown() {
+  Widget _buildRackAction() {
     return BlocBuilder<OpnameBloc, OpnameState>(
       builder: (context, state) {
-        if (state is OpnameInProgress && state.racks.isNotEmpty) {
-          final selectedRack = state.racks.firstWhere(
-            (r) => r.raId == state.selectedRaId,
-            orElse: () => state.racks.first,
-          );
-          return PopupMenuButton<RackModel>(
-            icon: const Icon(Icons.inventory_2),
-            onSelected: (rack) {
-              context.read<OpnameBloc>().add(ChangeRackEvent(rack.raId));
-            },
-            itemBuilder: (context) => state.racks.map((rack) {
-              return PopupMenuItem<RackModel>(
-                value: rack,
-                child: Row(
-                  children: [
-                    if (rack.raId == state.selectedRaId)
-                      const Icon(Icons.check, size: 18)
-                    else
-                      const SizedBox(width: 18),
-                    const SizedBox(width: 8),
-                    Text(rack.raName),
-                  ],
-                ),
-              );
-            }).toList(),
-          );
+        if (state is! OpnameInProgress || state.racks.isEmpty) {
+          return const SizedBox.shrink();
         }
-        return const SizedBox.shrink();
+        final selected = state.racks.firstWhere(
+          (r) => r.raId == state.selectedRaId,
+          orElse: () => state.racks.first,
+        );
+        return TextButton.icon(
+          onPressed: () => _showRackPicker(context, state),
+          icon: const Icon(Icons.inventory_2, color: Colors.white),
+          label: Text(
+            selected.raName,
+            style: const TextStyle(color: Colors.white),
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
       },
+    );
+  }
+
+  void _showRackPicker(BuildContext context, OpnameInProgress state) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Pilih Rak',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const Divider(height: 1),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: state.racks.length,
+                itemBuilder: (_, i) {
+                  final rack = state.racks[i];
+                  final selected = rack.raId == state.selectedRaId;
+                  return ListTile(
+                    leading: Icon(
+                      selected ? Icons.check_circle : Icons.inventory_2,
+                      color: selected ? Colors.blue : Colors.grey,
+                    ),
+                    title: Text(rack.raName),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _opnameBloc?.add(ChangeRackEvent(rack.raId));
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -125,11 +184,11 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(state.message),
+                      Text(state.message, textAlign: TextAlign.center),
+                      const SizedBox(height: 12),
                       ElevatedButton(
-                        onPressed: () => context
-                            .read<OpnameBloc>()
-                            .add(const GetOpnameProductsEvent()),
+                        onPressed: () => _opnameBloc
+                            ?.add(const GetOpnameProductsEvent()),
                         child: const Text('Retry'),
                       ),
                     ],
@@ -137,6 +196,14 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
                 );
               }
               if (state is OpnameInProgress) {
+                if (state.items.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Produk tidak ditemukan.\nCoba ketik di search bar (mis. "a")',
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                }
                 return _buildOpnameList(context, state.items);
               }
               return const Center(child: Text('Mulai stock opname'));
@@ -160,9 +227,8 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
               children: [
                 Text(state.message),
                 ElevatedButton(
-                  onPressed: () => context
-                      .read<OpnameBloc>()
-                      .add(const GetOpnameProductsEvent()),
+                  onPressed: () =>
+                      _opnameBloc?.add(const GetOpnameProductsEvent()),
                   child: const Text('Retry'),
                 ),
               ],
@@ -180,40 +246,31 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Scan atau cari produk...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onSubmitted: (value) {
-                context.read<OpnameBloc>().add(GetOpnameProductsEvent(
-                  searchValue: value,
-                ));
-              },
-            ),
+      child: TextField(
+        controller: _searchController,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          hintText: 'Scan atau cari produk...',
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: _clearSearch,
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: Icon(_isScanning ? Icons.close : Icons.qr_code_scanner),
-            onPressed: () => _toggleScanner(context),
-          ),
-        ],
+        ),
+        onSubmitted: (value) {
+          _searchDebounce?.cancel();
+          _opnameBloc?.add(GetOpnameProductsEvent(searchValue: value.trim()));
+        },
       ),
     );
   }
 
   Widget _buildOpnameList(BuildContext context, List<OpnameItemModel> items) {
-    if (items.isEmpty) {
-      return const Center(child: Text('Produk tidak ditemukan'));
-    }
-
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
@@ -221,10 +278,10 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
         return OpnameItemWidget(
           item: item,
           onActualStockChanged: (value) {
-            context.read<OpnameBloc>().add(UpdateActualStockEvent(
-                  productId: item.productId,
-                  actualStock: value,
-                ));
+            _opnameBloc?.add(UpdateActualStockEvent(
+              productId: item.productId,
+              actualStock: value,
+            ));
           },
         );
       },
@@ -282,8 +339,6 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
                 final barcode = capture.barcodes.firstOrNull;
                 if (barcode?.rawValue != null) {
                   _searchController.text = barcode!.rawValue!;
-                  context.read<OpnameBloc>().add(
-                      GetOpnameProductsEvent(searchValue: barcode.rawValue!));
                   Navigator.pop(ctx);
                   setState(() => _isScanning = false);
                 }
@@ -293,14 +348,6 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
         ),
       );
     }
-  }
-
-  Future<void> _pickImage(BuildContext context) async {
-    // Implement image picker here using image_picker package
-    // For now, show a message that gallery scanning is not implemented
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Gallery scanning not implemented yet')),
-    );
   }
 
   void _showSubmitConfirmation(BuildContext context) {
@@ -317,7 +364,7 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              context.read<OpnameBloc>().add(const SubmitOpnameEvent());
+              _opnameBloc?.add(const SubmitOpnameEvent());
             },
             child: const Text('Submit'),
           ),
