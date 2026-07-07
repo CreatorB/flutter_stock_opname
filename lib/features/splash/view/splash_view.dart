@@ -1,7 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
 import 'package:syathiby/core/utils/router/routes.dart';
 import 'package:syathiby/features/auth/login/bloc/login_bloc.dart';
@@ -59,8 +60,9 @@ class _SplashViewState extends State<SplashView>
     final LoginBloc loginBloc = BlocProvider.of<LoginBloc>(context);
     final RegisterBloc registerBloc = BlocProvider.of<RegisterBloc>(context);
     final ProfileBloc profileBloc = BlocProvider.of<ProfileBloc>(context);
-    return CupertinoPageScaffold(
-      child: FutureBuilder(
+    return Scaffold(
+      backgroundColor: ColorConstants.darkBackground,
+      body: FutureBuilder(
         future: _future(context),
         builder: (context, snapshot) {
           return BlocListener<LoginBloc, LoginState>(
@@ -77,20 +79,17 @@ class _SplashViewState extends State<SplashView>
                 animation: _animation,
                 builder: (context, child) {
                   return Transform.scale(
-                    scale: _animation.value, // Skala animasi
+                    scale: _animation.value,
                     child: child,
                   );
                 },
                 child: Image.asset(
-                  'assets/images/ic_launcher.png', // Path ke logo
-                  width: 150, // Ukuran logo
+                  'assets/images/ic_launcher.png',
+                  width: 150,
                   height: 150,
                 ),
               ),
             ),
-            // child: const Center(
-            //   child: CupertinoActivityIndicator(),
-            // ),
           );
         },
       ),

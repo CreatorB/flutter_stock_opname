@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/features/sale/bloc/sale_bloc.dart';
 import 'package:syathiby/features/sale/bloc/sale_event.dart';
 import 'package:syathiby/features/sale/bloc/sale_state.dart';
@@ -21,59 +22,96 @@ class ReceiptView extends StatelessWidget {
       builder: (context, state) {
         if (state is SaleSuccess) {
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('Struk'),
-              automaticallyImplyLeading: false,
-            ),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.check_circle,
-                    color: Colors.green,
-                    size: 80,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Transaksi Berhasil!',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+            backgroundColor: ColorConstants.darkBackground,
+            body: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 120,
+                  backgroundColor: ColorConstants.blueAccent,
+                  flexibleSpace: FlexibleSpaceBar(
+                    title: const Text(
+                      'Struk',
+                      style: TextStyle(color: ColorConstants.whiteText, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'No. Transaksi: ${state.sale?.saleCode ?? transactionId ?? '-'}',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 32),
-                  ElevatedButton.icon(
-                    onPressed: () => _printReceipt(context, state.printUrl),
-                    icon: const Icon(Icons.print),
-                    label: const Text('Cetak Struk'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
+                    centerTitle: true,
+                    background: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [ColorConstants.blueAccent, ColorConstants.cyanAccent],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => _newTransaction(context),
-                    child: const Text('Transaksi Baru'),
+                ),
+                SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            color: ColorConstants.greenAccent,
+                            size: 80,
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Transaksi Berhasil!',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: ColorConstants.whiteText,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No. Transaksi: ${state.sale?.saleCode ?? transactionId ?? '-'}',
+                            style: const TextStyle(color: ColorConstants.grayText),
+                          ),
+                          const SizedBox(height: 32),
+                          ElevatedButton.icon(
+                            onPressed: () => _printReceipt(context, state.printUrl),
+                            icon: const Icon(Icons.print),
+                            label: const Text('Cetak Struk'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: ColorConstants.orangeAccent,
+                              foregroundColor: ColorConstants.whiteText,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: () => _newTransaction(context),
+                            child: const Text(
+                              'Transaksi Baru',
+                              style: TextStyle(color: ColorConstants.blueAccent),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Struk')),
-          body: const Center(child: Text('Data tidak tersedia')),
+          backgroundColor: ColorConstants.darkBackground,
+          appBar: AppBar(
+            title: const Text('Struk', style: TextStyle(color: ColorConstants.whiteText)),
+            backgroundColor: ColorConstants.blueAccent,
+          ),
+          body: const Center(
+            child: Text('Data tidak tersedia', style: TextStyle(color: ColorConstants.grayText)),
+          ),
         );
       },
     );
@@ -86,7 +124,10 @@ class ReceiptView extends StatelessWidget {
     } else {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tidak dapat membuka URL cetak')),
+          const SnackBar(
+            content: Text('Tidak dapat membuka URL cetak'),
+            backgroundColor: ColorConstants.redAccent,
+          ),
         );
       }
     }

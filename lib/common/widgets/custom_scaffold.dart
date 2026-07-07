@@ -1,9 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
-import 'package:syathiby/features/theme/bloc/theme_state.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
+import 'package:syathiby/common/widgets/gradient_header.dart';
 
 class CustomScaffold extends StatefulWidget {
   final String title;
@@ -33,13 +31,13 @@ class CustomScaffold extends StatefulWidget {
 
 class _CustomScaffoldState extends State<CustomScaffold> {
   late final ScrollController _effectiveScrollController;
-  
+
   @override
   void initState() {
     super.initState();
     _effectiveScrollController = widget.scrollController ?? ScrollController();
   }
-  
+
   @override
   void dispose() {
     if (widget.scrollController == null) {
@@ -52,48 +50,29 @@ class _CustomScaffoldState extends State<CustomScaffold> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context, themeState) {
-          return CupertinoPageScaffold(
-            navigationBar: CupertinoNavigationBar(
-              padding: widget.navigationBarPadding,
-              backgroundColor: widget.navigationBarBackgroundColor,
-              border: null,
-              middle: Text(
-                widget.title,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold
-                ),
-              ).tr(),
-              brightness: themeState.isDark ? Brightness.dark : Brightness.light,
+      child: Scaffold(
+        body: Column(
+          children: [
+            GradientHeader(
+              title: widget.title.tr(),
               trailing: widget.trailing,
-              automaticallyImplyLeading: widget.automaticallyImplyLeading,
             ),
-            child: SafeArea(
-              bottom: true,
-              child: widget.onRefresh != null 
-                ? _buildWithRefresh(context)
-                : _buildWithoutRefresh(context),
+            Expanded(
+              child: widget.onRefresh != null
+                  ? RefreshIndicator(
+                      onRefresh: widget.onRefresh!,
+                      color: ColorConstants.darkPrimaryIcon,
+                      child: _buildScrollView(),
+                    )
+                  : _buildScrollView(),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
-  
-  Widget _buildWithRefresh(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: widget.onRefresh!,
-      child: _buildScrollView(context),
-    );
-  }
-  
-  Widget _buildWithoutRefresh(BuildContext context) {
-    return _buildScrollView(context);
-  }
-  
-  Widget _buildScrollView(BuildContext context) {
+
+  Widget _buildScrollView() {
     return SingleChildScrollView(
       controller: _effectiveScrollController,
       physics: const AlwaysScrollableScrollPhysics(
@@ -104,13 +83,8 @@ class _CustomScaffoldState extends State<CustomScaffold> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Add extra padding at the top for better scrolling
             const SizedBox(height: 8),
-            
-            // Main content
             ...widget.children,
-            
-            // Add extra padding at the bottom for better scrolling
             const SizedBox(height: 50),
           ],
         ),

@@ -1,15 +1,19 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
 import 'package:syathiby/features/theme/bloc/theme_state.dart';
-import 'package:syathiby/core/constants/color_constants.dart';
 
 class ListSectionWidget extends StatelessWidget {
   final List<Widget>? children;
   final double dividerMargin;
   final bool hasLeading;
-  const ListSectionWidget({super.key, this.children, this.dividerMargin = 14, this.hasLeading = true});
+  const ListSectionWidget({
+    super.key,
+    this.children,
+    this.dividerMargin = 14,
+    this.hasLeading = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,16 +23,12 @@ class ListSectionWidget extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 10),
           child: ClipRRect(
             borderRadius: const BorderRadius.all(Radius.circular(10)),
-            child: CupertinoListSection.insetGrouped(
-              backgroundColor: Colors.transparent,
-              topMargin: 0,
-              margin: EdgeInsets.zero,
-              dividerMargin: dividerMargin,
-              hasLeading: hasLeading,
-              decoration: BoxDecoration(
-                color: state.isDark ? ColorConstants.darkItem : ColorConstants.lightItem,
+            child: Material(
+              color: ColorConstants.glassCardSolid,
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
+              child: Column(
+                children: children ?? [],
               ),
-              children: children,
             ),
           ),
         );

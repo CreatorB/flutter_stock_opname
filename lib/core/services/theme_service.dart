@@ -44,26 +44,14 @@ class ThemeService {
 
   static CupertinoThemeData buildTheme(ThemeState state) {
     return CupertinoThemeData(
-      brightness: state.isDark ? Brightness.dark : Brightness.light,
-      primaryColor: CupertinoColors.systemBlue,
-      barBackgroundColor: const CupertinoDynamicColor.withBrightness(
-        color: CupertinoColors.lightBackgroundGray,
-        darkColor: CupertinoColors.darkBackgroundGray,
-      ),
-      scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
-        color: ColorConstants.lightBackground,
-        darkColor: ColorConstants.darkBackground,
-      ),
+      brightness: Brightness.dark,
+      primaryColor: ColorConstants.darkPrimaryColor,
+      barBackgroundColor: ColorConstants.darkBackground,
+      scaffoldBackgroundColor: ColorConstants.darkBackground,
       textTheme: const CupertinoTextThemeData(
-        primaryColor: CupertinoDynamicColor.withBrightness(
-          color: CupertinoColors.black,
-          darkColor: CupertinoColors.white,
-        ),
+        primaryColor: ColorConstants.whiteText,
         textStyle: TextStyle(
-          color: CupertinoDynamicColor.withBrightness(
-            color: CupertinoColors.black,
-            darkColor: CupertinoColors.white,
-          ),
+          color: ColorConstants.whiteText,
         ),
       ),
     );

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
+import 'package:syathiby/common/widgets/gradient_header.dart';
+import 'package:syathiby/common/widgets/glow_card.dart';
+import 'package:syathiby/common/widgets/gradient_button.dart';
 import 'package:syathiby/features/payment/view/payment_method_view.dart';
 import 'package:syathiby/features/sale/bloc/sale_bloc.dart';
 import 'package:syathiby/features/sale/bloc/sale_event.dart';
@@ -18,8 +22,17 @@ class CartView extends StatelessWidget {
           return _buildCartContent(context, state);
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Keranjang')),
-          body: const Center(child: Text('Keranjang kosong')),
+          body: Column(
+            children: [
+              const GradientHeader(title: 'Keranjang'),
+              const Center(
+                child: Text(
+                  'Keranjang kosong',
+                  style: TextStyle(color: ColorConstants.whiteText),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -28,25 +41,36 @@ class CartView extends StatelessWidget {
   Widget _buildCartContent(BuildContext context, SaleInProgress state) {
     if (state.cartItems.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Keranjang')),
-        body: const Center(child: Text('Keranjang kosong')),
+        body: Column(
+          children: [
+            const GradientHeader(title: 'Keranjang'),
+            const Center(
+              child: Text(
+                'Keranjang kosong',
+                style: TextStyle(color: ColorConstants.whiteText),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Keranjang'),
-        actions: [
-          TextButton(
-            onPressed: () => _showClearConfirmation(context),
-            child: const Text('Hapus Semua'),
-          ),
-        ],
-      ),
       body: Column(
         children: [
+          GradientHeader(
+            title: 'Keranjang',
+            trailing: TextButton(
+              onPressed: () => _showClearConfirmation(context),
+              child: const Text(
+                'Hapus Semua',
+                style: TextStyle(color: ColorConstants.redError),
+              ),
+            ),
+          ),
           Expanded(
             child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               itemCount: state.cartItems.length,
               itemBuilder: (context, index) {
                 final item = state.cartItems[index];
@@ -62,7 +86,9 @@ class CartView extends StatelessWidget {
                         ));
                   },
                   onRemove: () {
-                    context.read<SaleBloc>().add(RemoveFromCartEvent(item.productId));
+                    context
+                        .read<SaleBloc>()
+                        .add(RemoveFromCartEvent(item.productId));
                   },
                 );
               },
@@ -75,54 +101,41 @@ class CartView extends StatelessWidget {
   }
 
   Widget _buildBottomBar(BuildContext context, double totalAmount) {
-    return Container(
+    return GlowCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(50),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+      borderColor: ColorConstants.greenPrice.withOpacity(0.3),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Total',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.whiteText,
+                ),
+              ),
+              Text(
+                'Rp ${_formatNumber(totalAmount.toStringAsFixed(0))}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.greenPrice,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          GradientButton(
+            text: 'BAYAR',
+            onPressed: () => _navigateToPayment(context),
+            gradientColors: [ColorConstants.greenPrice, ColorConstants.greenPrice],
+            borderRadius: 12,
           ),
         ],
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Total',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'Rp ${_formatNumber(totalAmount.toStringAsFixed(0))}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _navigateToPayment(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text('BAYAR'),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -131,20 +144,29 @@ class CartView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Hapus Semua?'),
-        content: const Text('Semua item di keranjang akan dihapus.'),
+        backgroundColor: ColorConstants.glassCardSolid,
+        title: const Text(
+          'Hapus Semua?',
+          style: TextStyle(color: ColorConstants.whiteText),
+        ),
+        content: const Text(
+          'Semua item di keranjang akan dihapus.',
+          style: TextStyle(color: ColorConstants.grayText),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
+            child:
+                const Text('Batal', style: TextStyle(color: ColorConstants.grayText)),
           ),
           ElevatedButton(
             onPressed: () {
               context.read<SaleBloc>().add(const ClearCartEvent());
               Navigator.pop(ctx);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Hapus'),
+            style: ElevatedButton.styleFrom(backgroundColor: ColorConstants.redError),
+            child:
+                const Text('Hapus', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
