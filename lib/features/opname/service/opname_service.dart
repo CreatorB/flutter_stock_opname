@@ -8,8 +8,7 @@ class OpnameService {
 
   OpnameService(this._dio);
 
-  Future<HttpResponseModel<List<OpnameProductResponseModel>>> getProducts({
-    String? raId,
+  Future<HttpResponseModel<List<OpnameDraftResponseModel>>> getDraft({
     String searchValue = '',
   }) async {
     try {
@@ -26,38 +25,37 @@ class OpnameService {
       }
 
       final response = await _dio.post(
-        '/api/opname/data',
+        '/api/opname/get_draft',
         data: FormData.fromMap({
           'user_id': userId,
           'br_id': brId,
-          'ra_id': raId ?? '',
-          'search_value': searchValue,
+          'searchValue': searchValue,
         }),
       );
 
       if (response.data['status'] == true) {
         final List<dynamic> result = response.data['result'] ?? [];
-        final products = result.map((e) => OpnameProductResponseModel.fromJson(e)).toList();
-
+        final drafts =
+            result.map((e) => OpnameDraftResponseModel.fromJson(e)).toList();
         return HttpResponseModel(
           statusCode: response.statusCode,
-          data: products,
+          data: drafts,
           message: response.data['msg'],
         );
       } else {
         return HttpResponseModel(
           statusCode: response.statusCode,
-          message: response.data['msg'] ?? 'Failed to load products',
+          message: response.data['msg'] ?? 'Failed to load draft',
         );
       }
     } on DioException catch (e) {
-      LoggerUtil.error('Get opname products error', e);
+      LoggerUtil.error('Get opname draft error', e);
       return HttpResponseModel(
         statusCode: e.response?.statusCode ?? 500,
         message: e.message ?? 'Connection error',
       );
     } catch (e) {
-      LoggerUtil.error('Get opname products unknown error', e);
+      LoggerUtil.error('Get opname draft unknown error', e);
       return HttpResponseModel(
         statusCode: 500,
         message: e.toString(),
@@ -105,10 +103,13 @@ class OpnameService {
         );
       }
     } on DioException catch (e) {
-      LoggerUtil.error('Do save barcode error', e);
+      LoggerUtil.error(
+        'Do save barcode error: status=${e.response?.statusCode} body=${e.response?.data} message=${e.message}',
+        e,
+      );
       return HttpResponseModel(
         statusCode: e.response?.statusCode ?? 500,
-        message: e.message ?? 'Connection error',
+        message: e.response?.data?['msg']?.toString() ?? e.message ?? 'Connection error',
       );
     } catch (e) {
       LoggerUtil.error('Do save barcode unknown error', e);
@@ -139,6 +140,10 @@ class OpnameService {
       final token = SharedPreferencesService.instance
           .getData<String>(PreferenceKey.authToken);
 
+      LoggerUtil.debug(
+        'doFinish request: ra_id=$raId jenis=$jenis user_id=$userId br_id=$brId',
+      );
+
       final response = await _dio.post(
         '/api/opname/do_finish',
         data: FormData.fromMap({
@@ -163,67 +168,16 @@ class OpnameService {
         );
       }
     } on DioException catch (e) {
-      LoggerUtil.error('Do finish opname error', e);
+      LoggerUtil.error(
+        'Do finish opname error: status=${e.response?.statusCode} body=${e.response?.data} message=${e.message}',
+        e,
+      );
       return HttpResponseModel(
         statusCode: e.response?.statusCode ?? 500,
-        message: e.message ?? 'Connection error',
+        message: e.response?.data?['msg']?.toString() ?? e.message ?? 'Connection error',
       );
     } catch (e) {
       LoggerUtil.error('Do finish opname unknown error', e);
-      return HttpResponseModel(
-        statusCode: 500,
-        message: e.toString(),
-      );
-    }
-  }
-
-  Future<HttpResponseModel<List<OpnameDraftResponseModel>>> getDraft({
-    String searchValue = '',
-  }) async {
-    try {
-      final userId = SharedPreferencesService.instance
-          .getData<String>(PreferenceKey.userId);
-      final brId = SharedPreferencesService.instance
-          .getData<String>(PreferenceKey.branchId);
-
-      if (userId == null || brId == null) {
-        return HttpResponseModel(
-          statusCode: 401,
-          message: 'Unauthorized: Missing user data',
-        );
-      }
-
-      final response = await _dio.post(
-        '/api/opname/get_draft',
-        data: FormData.fromMap({
-          'user_id': userId,
-          'br_id': brId,
-          'searchValue': searchValue,
-        }),
-      );
-
-      if (response.data['status'] == true) {
-        final List<dynamic> result = response.data['result'] ?? [];
-        final drafts = result.map((e) => OpnameDraftResponseModel.fromJson(e)).toList();
-        return HttpResponseModel(
-          statusCode: response.statusCode,
-          data: drafts,
-          message: response.data['msg'],
-        );
-      } else {
-        return HttpResponseModel(
-          statusCode: response.statusCode,
-          message: response.data['msg'] ?? 'Failed to load draft',
-        );
-      }
-    } on DioException catch (e) {
-      LoggerUtil.error('Get opname draft error', e);
-      return HttpResponseModel(
-        statusCode: e.response?.statusCode ?? 500,
-        message: e.message ?? 'Connection error',
-      );
-    } catch (e) {
-      LoggerUtil.error('Get opname draft unknown error', e);
       return HttpResponseModel(
         statusCode: 500,
         message: e.toString(),
@@ -268,35 +222,6 @@ class OpnameFinishResponseModel {
       status: json['status'] ?? false,
       msg: json['msg'],
       opnameId: json['opname_id']?.toString(),
-    );
-  }
-}
-
-class OpnameProductResponseModel {
-  final String? pId;
-  final String? pCode;
-  final String? pName;
-  final String? stock;
-  final String? raId;
-  final String? raName;
-
-  OpnameProductResponseModel({
-    this.pId,
-    this.pCode,
-    this.pName,
-    this.stock,
-    this.raId,
-    this.raName,
-  });
-
-  factory OpnameProductResponseModel.fromJson(Map<String, dynamic> json) {
-    return OpnameProductResponseModel(
-      pId: json['p_id']?.toString(),
-      pCode: json['p_code'],
-      pName: json['p_name'],
-      stock: json['stock']?.toString(),
-      raId: json['ra_id']?.toString(),
-      raName: json['ra_name'],
     );
   }
 }

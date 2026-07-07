@@ -6,14 +6,17 @@ import 'package:syathiby/features/home/service/rack_service.dart';
 import 'package:syathiby/features/opname/bloc/opname_event.dart';
 import 'package:syathiby/features/opname/bloc/opname_state.dart';
 import 'package:syathiby/features/opname/service/opname_service.dart';
+import 'package:syathiby/features/product/service/product_service.dart';
 
 class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
   final OpnameService opnameService;
   final RackService rackService;
+  final ProductService productService;
 
   OpnameBloc({
     required this.opnameService,
     required this.rackService,
+    required this.productService,
   }) : super(const OpnameInitial()) {
     on<GetOpnameProductsEvent>(_onGetProducts);
     on<UpdateActualStockEvent>(_onUpdateActualStock);
@@ -35,47 +38,63 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
     emit(const OpnameLoading());
 
     try {
-      final rackResponse = await rackService.getRacks(searchValue: event.searchValue);
+      final rackFuture = rackService.getRacks();
+      final productFuture = productService.getProducts(
+        searchValue: event.searchValue,
+      );
+
+      final rackResponse = await rackFuture;
+      final productResponse = await productFuture;
+
+      LoggerUtil.debug(
+        'Rack fetch: status=${rackResponse.statusCode} count=${rackResponse.data?.length ?? 0}',
+      );
 
       if (rackResponse.statusCode == 200 && rackResponse.data != null) {
         _racks = rackResponse.data!;
-        
-        String? raIdToUse = event.raId ?? _selectedRaId;
-        if (_racks.isNotEmpty && raIdToUse == null) {
-          raIdToUse = _racks.first.raId;
-          _selectedRaId = raIdToUse;
+
+        if (_racks.isEmpty) {
+          LoggerUtil.warning('No racks available for this user/branch');
+          emit(const OpnameError(
+              'Tidak ada rak tersedia. Hubungi admin untuk setup rak.'));
+          return;
         }
 
-        final productResponse = await opnameService.getProducts(
-          raId: raIdToUse,
-          searchValue: event.searchValue,
-        );
+        String? raIdToUse = event.raId ?? _selectedRaId;
+        if (raIdToUse == null || raIdToUse.isEmpty) {
+          raIdToUse = _racks.first.raId.isEmpty ? null : _racks.first.raId;
+        }
+        if (raIdToUse != null && raIdToUse.isNotEmpty) {
+          _selectedRaId = raIdToUse;
+          LoggerUtil.debug(
+            'Selected rack: $raIdToUse (${_findRackName(raIdToUse)})',
+          );
+        } else {
+          LoggerUtil.warning('Auto-select failed: first rack has empty ra_id');
+        }
 
         if (productResponse.statusCode == 200 && productResponse.data != null) {
-          _opnameItems = productResponse.data!.map((p) => OpnameItemModel(
-            productId: p.pId ?? '',
-            productCode: p.pCode ?? '',
-            productName: p.pName ?? '',
-            systemStock: p.stock ?? '0',
-            actualStock: '0',
-            raId: p.raId,
-            raName: p.raName,
-          )).toList();
-          
-          emit(OpnameInProgress(
-            items: _opnameItems, 
-            racks: _racks, 
-            selectedRaId: raIdToUse,
-          ));
-        } else {
-          emit(OpnameInProgress(
-            items: _opnameItems, 
-            racks: _racks, 
-            selectedRaId: _selectedRaId,
-          ));
+          _opnameItems = productResponse.data!.map((p) {
+            return OpnameItemModel(
+              productId: p.id ?? '',
+              productCode: p.pCode ?? '',
+              productName: p.pName ?? '',
+              systemStock: p.stock ?? '0',
+              actualStock: '0',
+              raId: raIdToUse,
+              raName: _findRackName(raIdToUse),
+            );
+          }).toList();
         }
+
+        emit(OpnameInProgress(
+          items: _opnameItems,
+          racks: _racks,
+          selectedRaId: raIdToUse,
+        ));
       } else {
-        emit(OpnameError(rackResponse.message ?? 'Failed to load racks'));
+        emit(OpnameError(
+            '[${rackResponse.statusCode}] ${rackResponse.message ?? 'Failed to load racks'}'));
       }
     } catch (e, stack) {
       LoggerUtil.error('Error fetching opname products', e, stack);
@@ -83,32 +102,37 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
     }
   }
 
-  void _onUpdateActualStock(
-      UpdateActualStockEvent event, Emitter<OpnameState> emit) {
-    if (state is OpnameInProgress) {
-      final currentState = state as OpnameInProgress;
-      final existingIndex = currentState.items.indexWhere(
-        (item) => item.productId == event.productId,
-      );
+  String? _findRackName(String? raId) {
+    if (raId == null) return null;
+    final match = _racks.where((r) => r.raId == raId);
+    return match.isNotEmpty ? match.first.raName : null;
+  }
 
-      if (existingIndex >= 0) {
-        final updatedItems = currentState.items.map((item) {
-          if (item.productId == event.productId) {
-            return item.copyWith(actualStock: event.actualStock);
-          }
-          return item;
-        }).toList();
-        emit(currentState.copyWith(items: updatedItems));
-      } else {
-        final newItem = OpnameItemModel(
-          productId: event.productId,
-          productCode: '',
-          productName: '',
-          systemStock: '0',
-          actualStock: event.actualStock,
-        );
-        emit(currentState.copyWith(items: [...currentState.items, newItem]));
+  void _onUpdateActualStock(
+      UpdateActualStockEvent event, Emitter<OpnameState> emit) async {
+    if (state is! OpnameInProgress) return;
+    final currentState = state as OpnameInProgress;
+
+    final existingIndex =
+        currentState.items.indexWhere((i) => i.productId == event.productId);
+    if (existingIndex < 0) return;
+
+    final updatedItems = currentState.items.map((item) {
+      if (item.productId == event.productId) {
+        return item.copyWith(actualStock: event.actualStock);
       }
+      return item;
+    }).toList();
+
+    emit(currentState.copyWith(items: updatedItems));
+
+    try {
+      await opnameService.doSaveBarcode(
+        pId: event.productId,
+        qty: event.actualStock,
+      );
+    } catch (e, stack) {
+      LoggerUtil.error('do_save failed for ${event.productId}', e, stack);
     }
   }
 
@@ -164,57 +188,14 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
 
   void _onScanFromGallery(ScanFromGalleryEvent event, Emitter<OpnameState> emit) async {
     if (state is OpnameInProgress) {
-      final currentState = state as OpnameInProgress;
-      
-      try {
-        final productResponse = await opnameService.getProducts(
-          searchValue: event.imagePath,
-        );
-
-        if (productResponse.statusCode == 200 && productResponse.data != null && productResponse.data!.isNotEmpty) {
-          final product = productResponse.data!.first;
-          
-          final existingIndex = currentState.items.indexWhere(
-            (item) => item.productId == product.pId,
-          );
-
-          if (existingIndex >= 0) {
-            final updatedItems = currentState.items.map((item) {
-              if (item.productId == product.pId) {
-                final newQty = (int.tryParse(item.actualStock) ?? 0) + 1;
-                return item.copyWith(actualStock: newQty.toString());
-              }
-              return item;
-            }).toList();
-            
-            emit(currentState.copyWith(items: updatedItems));
-          } else {
-            final newItem = OpnameItemModel(
-              productId: product.pId ?? '',
-              productCode: product.pCode ?? '',
-              productName: product.pName ?? '',
-              systemStock: product.stock ?? '0',
-              actualStock: '1',
-              raId: product.raId,
-              raName: product.raName,
-            );
-            
-            emit(currentState.copyWith(items: [...currentState.items, newItem]));
-          }
-        } else {
-          emit(OpnameError('Product not found'));
-        }
-      } catch (e, stack) {
-        LoggerUtil.error('Error scanning from gallery', e, stack);
-        emit(OpnameError('Error: ${e.toString()}'));
-      }
+      emit(const OpnameError('Scan from gallery belum didukung oleh API'));
     }
   }
 
   void _onUndoScan(UndoScanEvent event, Emitter<OpnameState> emit) {
     if (state is OpnameInProgress) {
       final currentState = state as OpnameInProgress;
-      
+
       final updatedItems = currentState.items.map((item) {
         if (item.productId == event.productId) {
           final newQty = (int.tryParse(item.actualStock) ?? 0) - 1;
@@ -222,7 +203,7 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
         }
         return item;
       }).toList();
-      
+
       emit(currentState.copyWith(items: updatedItems));
     }
   }
@@ -251,12 +232,31 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
 
     final currentState = state as OpnameInProgress;
 
-    if (_selectedRaId == null) {
+    if (_selectedRaId == null || _selectedRaId!.isEmpty) {
       emit(const OpnameError('Please select a rack'));
       return;
     }
 
+    final hasItems = currentState.items.any(
+      (i) => (int.tryParse(i.actualStock) ?? 0) > 0,
+    );
+    if (!hasItems) {
+      emit(const OpnameError(
+          'Tidak ada item yang akan di-submit (qty harus > 0)'));
+      return;
+    }
+
     emit(const OpnameSubmitting());
+
+    final draftCheck = await opnameService.getDraft();
+    if (draftCheck.statusCode != 200 ||
+        draftCheck.data == null ||
+        draftCheck.data!.isEmpty) {
+      emit(OpnameError(
+        'Draft kosong di server. Coba edit qty lagi lalu tunggu sebentar.',
+      ));
+      return;
+    }
 
     try {
       final response = await opnameService.doFinish(
@@ -276,7 +276,9 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
           opnameCode: response.data!.opnameId ?? '',
         ));
       } else {
-        emit(OpnameError(response.message ?? 'Failed to submit opname'));
+        emit(OpnameError(
+          '[${response.statusCode}] ${response.message ?? 'Failed to submit opname'}',
+        ));
       }
     } catch (e, stack) {
       LoggerUtil.error('Error submitting opname', e, stack);
