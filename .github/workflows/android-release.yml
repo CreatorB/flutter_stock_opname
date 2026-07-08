@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Generate localization keys
+        run: flutter pub run easy_localization:generate -S assets/translations -O lib -f keys -o locale_keys.g.dart
+
       - name: Run static analysis
         run: flutter analyze
 
