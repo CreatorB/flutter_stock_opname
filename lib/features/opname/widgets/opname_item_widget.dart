@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
+import 'package:syathiby/common/widgets/glow_card.dart';
 import 'package:syathiby/features/opname/bloc/opname_state.dart';
 
 class OpnameItemWidget extends StatefulWidget {
@@ -33,84 +35,93 @@ class _OpnameItemWidgetState extends State<OpnameItemWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.item.productName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+    return GlowCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.item.productName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: ColorConstants.whiteText,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Code: ${widget.item.productCode}',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Code: ${widget.item.productCode}',
+                      style: const TextStyle(
+                        color: ColorConstants.grayText,
+                        fontSize: 12,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Stock Sistem',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Stock Sistem',
+                      style: TextStyle(
+                        color: ColorConstants.grayText,
+                        fontSize: 12,
                       ),
-                      Text(
-                        widget.item.systemStock,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    Text(
+                      widget.item.systemStock,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: ColorConstants.whiteText,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Stock Actual',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Stock Actual',
+                      style: TextStyle(
+                        color: ColorConstants.grayText,
+                        fontSize: 12,
                       ),
-                      TextFormField(
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: ColorConstants.darkTextField,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: ColorConstants.glassBorder),
+                      ),
+                      child: TextFormField(
                         controller: _controller,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                           LengthLimitingTextInputFormatter(4),
                         ],
+                        style: const TextStyle(color: ColorConstants.whiteText),
+                        cursorColor: ColorConstants.darkPrimaryIcon,
                         decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,
@@ -118,36 +129,36 @@ class _OpnameItemWidgetState extends State<OpnameItemWidget> {
                         ),
                         onChanged: widget.onActualStockChanged,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Selisih',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Selisih',
+                      style: TextStyle(
+                        color: ColorConstants.grayText,
+                        fontSize: 12,
                       ),
-                      Text(
-                        _getDifferenceText(),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: _getDifferenceColor(),
-                        ),
+                    ),
+                    Text(
+                      _getDifferenceText(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: _getDifferenceColor(),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -160,7 +171,7 @@ class _OpnameItemWidgetState extends State<OpnameItemWidget> {
 
   Color _getDifferenceColor() {
     final diff = widget.item.difference;
-    if (diff == 0) return Colors.grey;
-    return diff > 0 ? Colors.green : Colors.red;
+    if (diff == 0) return ColorConstants.grayText;
+    return diff > 0 ? ColorConstants.greenPrice : ColorConstants.redError;
   }
 }

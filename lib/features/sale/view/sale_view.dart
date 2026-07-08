@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:syathiby/core/di/injection.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
+import 'package:syathiby/common/widgets/gradient_header.dart';
+import 'package:syathiby/common/widgets/glow_card.dart';
 import 'package:syathiby/features/product/bloc/product_bloc.dart';
 import 'package:syathiby/features/product/bloc/product_event.dart';
 import 'package:syathiby/features/product/bloc/product_state.dart';
@@ -21,80 +26,173 @@ class SaleView extends StatefulWidget {
 
 class _SaleViewState extends State<SaleView> {
   final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
   bool _isScanning = false;
+  ProductBloc? _productBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      if (!mounted) return;
+      setState(() {});
+      _onSearchChanged(_searchController.text);
+    });
+  }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      _productBloc?.add(GetProductsEvent(searchValue: value.trim()));
+    });
+  }
+
+  void _clearSearch() {
+    _searchDebounce?.cancel();
+    _searchController.clear();
+    _productBloc?.add(const GetProductsEvent());
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<ProductBloc>()..add(const GetProductsEvent()),
+      create: (_) {
+        final bloc = sl<ProductBloc>()..add(const GetProductsEvent());
+        _productBloc = bloc;
+        return bloc;
+      },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Penjualan'),
-          actions: [
-            BlocBuilder<SaleBloc, SaleState>(
-              builder: (context, state) {
-                if (state is SaleInProgress && state.cartItems.isNotEmpty) {
-                  return Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.shopping_cart),
-                        onPressed: () => _navigateToCart(context),
-                      ),
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            '${state.cartItems.length}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
+        body: Column(
+          children: [
+            GradientHeader(
+              title: 'Penjualan',
+              subtitle: 'Kelola transaksi penjualan',
+              trailing: BlocBuilder<SaleBloc, SaleState>(
+                builder: (context, state) {
+                  if (state is SaleInProgress && state.cartItems.isNotEmpty) {
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+                          onPressed: () => _navigateToCart(context),
+                        ),
+                        Positioned(
+                          right: 6,
+                          top: 6,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: ColorConstants.redError,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '${state.cartItems.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    );
+                  }
+                  return IconButton(
+                    icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white70),
+                    onPressed: null,
                   );
-                }
-                return IconButton(
-                  icon: const Icon(Icons.shopping_cart),
-                  onPressed: null,
-                );
-              },
+                },
+              ),
             ),
-          ],
-        ),
-        body: Column(
-          children: [
-            _buildSearchBar(),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: ColorConstants.darkTextField,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: ColorConstants.glassBorder),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        textInputAction: TextInputAction.search,
+                        style: const TextStyle(color: ColorConstants.whiteText),
+                        cursorColor: ColorConstants.darkPrimaryIcon,
+                        decoration: InputDecoration(
+                          hintText: 'Cari produk...',
+                          hintStyle: const TextStyle(color: ColorConstants.grayText),
+                          prefixIcon: const Icon(Icons.search, color: ColorConstants.darkPrimaryIcon),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, color: ColorConstants.darkPrimaryIcon),
+                                  onPressed: _clearSearch,
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                        onSubmitted: (value) {
+                          _searchDebounce?.cancel();
+                          _productBloc?.add(GetProductsEvent(searchValue: value.trim()));
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: ColorConstants.darkPrimaryIcon.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: ColorConstants.darkPrimaryIcon),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.filter_list, color: ColorConstants.darkPrimaryIcon),
+                      onPressed: () {},
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Expanded(
               child: BlocBuilder<ProductBloc, ProductState>(
                 builder: (context, state) {
                   if (state is ProductLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                      child: CircularProgressIndicator(color: ColorConstants.darkPrimaryIcon),
+                    );
                   }
                   if (state is ProductError) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(state.message),
+                          Text(
+                            state.message,
+                            style: const TextStyle(color: ColorConstants.whiteText),
+                          ),
+                          const SizedBox(height: 16),
                           ElevatedButton(
                             onPressed: () => context
                                 .read<ProductBloc>()
                                 .add(const GetProductsEvent()),
-                            child: const Text('Retry'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: ColorConstants.darkPrimaryIcon,
+                            ),
+                            child: const Text(
+                              'Retry',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ],
                       ),
@@ -103,56 +201,52 @@ class _SaleViewState extends State<SaleView> {
                   if (state is ProductLoaded) {
                     return _buildProductList(context, state.products);
                   }
-                  return const Center(child: Text('No data'));
+                  return const Center(
+                    child: Text(
+                      'No data',
+                      style: TextStyle(color: ColorConstants.whiteText),
+                    ),
+                  );
                 },
               ),
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _toggleScanner(context),
-          child: Icon(_isScanning ? Icons.close : Icons.qr_code_scanner),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Cari produk...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+        floatingActionButton: Container(
+          decoration: BoxDecoration(
+            color: ColorConstants.darkPrimaryIcon,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: ColorConstants.darkPrimaryIcon.withOpacity(0.4),
+                blurRadius: 12,
+              ),
+            ],
           ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    context
-                        .read<ProductBloc>()
-                        .add(const GetProductsEvent());
-                  },
-                )
-              : null,
+          child: IconButton(
+            icon: Icon(
+              _isScanning ? Icons.close : Icons.qr_code_scanner,
+              color: Colors.white,
+            ),
+            onPressed: () => _toggleScanner(context),
+          ),
         ),
-        onSubmitted: (value) {
-          context.read<ProductBloc>().add(GetProductsEvent(searchValue: value));
-        },
       ),
     );
   }
 
   Widget _buildProductList(BuildContext context, List products) {
     if (products.isEmpty) {
-      return const Center(child: Text('Produk tidak ditemukan'));
+      return const Center(
+        child: Text(
+          'Produk tidak ditemukan',
+          style: TextStyle(color: ColorConstants.whiteText),
+        ),
+      );
     }
 
     return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: products.length,
       itemBuilder: (context, index) {
         final product = products[index];
@@ -162,20 +256,106 @@ class _SaleViewState extends State<SaleView> {
   }
 
   Widget _buildProductItem(BuildContext context, dynamic product) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
-        leading: const Icon(Icons.inventory_2),
-        title: Text(product.pName ?? 'Unknown'),
-        subtitle: Text(
-          'Rp ${_formatNumber((product.priceArea1 ?? '0').toString())}',
-          style: const TextStyle(color: Colors.green),
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.add_shopping_cart),
-          onPressed: () => _addToCart(context, product),
-        ),
-        onTap: () => _showPriceSelector(context, product),
+    final price = double.tryParse(product.priceArea1 ?? '0') ?? 0;
+    final stock = int.tryParse(product.stock ?? '0') ?? 0;
+
+    return GlowCard(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 12),
+      onTap: () => _showPriceSelector(context, product),
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: ColorConstants.darkTextField,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.inventory_2_outlined,
+              color: ColorConstants.darkPrimaryIcon,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.pName ?? 'Unknown',
+                  style: const TextStyle(
+                    color: ColorConstants.whiteText,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: ColorConstants.secondaryBlue.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    product.pCode ?? '-',
+                    style: const TextStyle(
+                      color: ColorConstants.secondaryBlue,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Rp ${_formatNumber(price.toString())}',
+                      style: const TextStyle(
+                        color: ColorConstants.darkPrimaryIcon,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: stock > 0
+                            ? ColorConstants.greenStockBadge
+                            : ColorConstants.redStockBadge,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Stock: $stock',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: ColorConstants.secondaryBlue,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: IconButton(
+              icon: const Icon(
+                Icons.add_shopping_cart,
+                color: Colors.white,
+                size: 20,
+              ),
+              onPressed: () => _addToCart(context, product),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -193,6 +373,8 @@ class _SaleViewState extends State<SaleView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${product.pName} ditambahkan'),
+        backgroundColor: ColorConstants.greenPrice,
+        behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 1),
       ),
     );
@@ -212,6 +394,7 @@ class _SaleViewState extends State<SaleView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: ColorConstants.glassCardSolid,
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(ctx).viewInsets.bottom,
@@ -228,6 +411,7 @@ class _SaleViewState extends State<SaleView> {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: ColorConstants.whiteText,
               ),
             ),
             const SizedBox(height: 16),
@@ -237,7 +421,8 @@ class _SaleViewState extends State<SaleView> {
                   cartItem: cartItem,
                   onUpdate: (qty, priceMode, priceArea, manualPrice) {
                     cartItem = cartItem.copyWith(
-                      priceMode: priceMode == 'grosir' ? PriceMode.grosir : PriceMode.retail,
+                      priceMode:
+                          priceMode == 'grosir' ? PriceMode.grosir : PriceMode.retail,
                       selectedPriceArea: priceArea != null
                           ? PriceArea.values.firstWhere(
                               (e) => e.name == priceArea,
@@ -274,7 +459,13 @@ class _SaleViewState extends State<SaleView> {
                   );
                   Navigator.pop(ctx);
                 },
-                child: const Text('Tambah ke Keranjang'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ColorConstants.darkPrimaryIcon,
+                ),
+                child: const Text(
+                  'Tambah ke Keranjang',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -320,7 +511,9 @@ class _SaleViewState extends State<SaleView> {
 
     final state = context.read<SaleBloc>().state;
     final existingIndex = state is SaleInProgress
-        ? state.cartItems.indexWhere((item) => item.productId == (product.id ?? ''))
+        ? state.cartItems.indexWhere(
+            (item) => item.productId == (product.id ?? ''),
+          )
         : -1;
 
     if (existingIndex < 0) {
@@ -353,6 +546,7 @@ class _SaleViewState extends State<SaleView> {
       showDialog(
         context: context,
         builder: (ctx) => Dialog(
+          backgroundColor: ColorConstants.glassCardSolid,
           child: SizedBox(
             width: 300,
             height: 400,
@@ -361,9 +555,9 @@ class _SaleViewState extends State<SaleView> {
                 final barcode = capture.barcodes.firstOrNull;
                 if (barcode?.rawValue != null) {
                   _searchController.text = barcode!.rawValue!;
-                  context
-                      .read<ProductBloc>()
-                      .add(GetProductsEvent(searchValue: barcode.rawValue!));
+                  _productBloc?.add(
+                    GetProductsEvent(searchValue: barcode.rawValue!),
+                  );
                   Navigator.pop(ctx);
                   setState(() => _isScanning = false);
                 }

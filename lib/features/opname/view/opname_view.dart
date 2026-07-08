@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
+import 'package:syathiby/common/widgets/gradient_header.dart';
+import 'package:syathiby/common/widgets/glow_card.dart';
+import 'package:syathiby/common/widgets/gradient_button.dart';
 import 'package:syathiby/features/home/service/rack_model.dart';
 import 'package:syathiby/features/opname/bloc/opname_bloc.dart';
 import 'package:syathiby/features/opname/bloc/opname_event.dart';
 import 'package:syathiby/features/opname/bloc/opname_state.dart';
 import 'package:syathiby/features/opname/widgets/opname_item_widget.dart';
+import 'dart:async';
 
 class OpnameView extends StatefulWidget {
   const OpnameView({super.key});
@@ -14,54 +20,106 @@ class OpnameView extends StatefulWidget {
   State<OpnameView> createState() => _OpnameViewState();
 }
 
-class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateMixin {
+class _OpnameViewState extends State<OpnameView>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
+  OpnameBloc? _opnameBloc;
   bool _isScanning = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    context.read<OpnameBloc>().add(const GetOpnameProductsEvent());
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_opnameBloc == null) {
+      _opnameBloc = context.read<OpnameBloc>();
+    }
   }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
+  void _onSearchChanged() {
+    final text = _searchController.text;
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      _opnameBloc?.add(GetOpnameProductsEvent(searchValue: text.trim()));
+    });
+  }
+
+  void _clearSearch() {
+    _searchDebounce?.cancel();
+    _searchController.clear();
+    _opnameBloc?.add(const GetOpnameProductsEvent(searchValue: ''));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Stock Opname'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.qr_code_scanner), text: 'Manual'),
-            Tab(icon: Icon(Icons.list), text: 'List'),
-          ],
-        ),
-        actions: [
-          _buildRackDropdown(),
-          IconButton(
-            icon: const Icon(Icons.photo_library),
-            onPressed: () => _pickImage(context),
-          ),
-        ],
-      ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _buildManualTab(context),
-          _buildListTab(context),
+          GradientHeader(
+            title: 'Stock Opname',
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildRackAction(),
+                Container(
+                  decoration: BoxDecoration(
+                    color: ColorConstants.darkPrimaryIcon,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      _isScanning ? Icons.close : Icons.qr_code_scanner,
+                      color: Colors.white,
+                    ),
+                    onPressed: () => _toggleScanner(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: ColorConstants.darkTextField,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: ColorConstants.glassBorder),
+              ),
+              child: Row(
+                children: [
+                  _buildTabButton('Manual', 0),
+                  _buildTabButton('List', 1),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildManualTab(context),
+                _buildListTab(context),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: BlocBuilder<OpnameBloc, OpnameState>(
@@ -75,71 +133,196 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildRackDropdown() {
+  Widget _buildTabButton(String label, int index) {
+    final isActive = _tabController.index == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _tabController.animateTo(index),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isActive ? ColorConstants.darkPrimaryIcon : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isActive ? Colors.white : ColorConstants.grayText,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRackAction() {
     return BlocBuilder<OpnameBloc, OpnameState>(
       builder: (context, state) {
-        if (state is OpnameInProgress && state.racks.isNotEmpty) {
-          final selectedRack = state.racks.firstWhere(
-            (r) => r.raId == state.selectedRaId,
-            orElse: () => state.racks.first,
-          );
-          return PopupMenuButton<RackModel>(
-            icon: const Icon(Icons.inventory_2),
-            onSelected: (rack) {
-              context.read<OpnameBloc>().add(ChangeRackEvent(rack.raId));
-            },
-            itemBuilder: (context) => state.racks.map((rack) {
-              return PopupMenuItem<RackModel>(
-                value: rack,
-                child: Row(
-                  children: [
-                    if (rack.raId == state.selectedRaId)
-                      const Icon(Icons.check, size: 18)
-                    else
-                      const SizedBox(width: 18),
-                    const SizedBox(width: 8),
-                    Text(rack.raName),
-                  ],
-                ),
-              );
-            }).toList(),
-          );
+        if (state is! OpnameInProgress || state.racks.isEmpty) {
+          return const SizedBox.shrink();
         }
-        return const SizedBox.shrink();
+        final selected = state.racks.firstWhere(
+          (r) => r.raId == state.selectedRaId,
+          orElse: () => state.racks.first,
+        );
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: TextButton(
+            onPressed: () => _showRackPicker(context, state),
+            child: Text(
+              selected.raName,
+              style: const TextStyle(color: Colors.white),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        );
       },
+    );
+  }
+
+  void _showRackPicker(BuildContext context, OpnameInProgress state) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: ColorConstants.glassCardSolid,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Pilih Rak',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.whiteText,
+                ),
+              ),
+            ),
+            const Divider(height: 1, color: ColorConstants.glassBorder),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: state.racks.length,
+                itemBuilder: (_, i) {
+                  final rack = state.racks[i];
+                  final selected = rack.raId == state.selectedRaId;
+                  return ListTile(
+                    leading: Icon(
+                      selected ? Icons.check_circle : Icons.inventory_2,
+                      color: selected
+                          ? ColorConstants.darkPrimaryIcon
+                          : ColorConstants.grayText,
+                    ),
+                    title: Text(
+                      rack.raName,
+                      style: TextStyle(
+                        color: selected
+                            ? ColorConstants.whiteText
+                            : ColorConstants.grayText,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _opnameBloc?.add(ChangeRackEvent(rack.raId));
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildManualTab(BuildContext context) {
     return Column(
       children: [
-        _buildSearchBar(),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: ColorConstants.darkTextField,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: ColorConstants.glassBorder),
+            ),
+            child: TextField(
+              controller: _searchController,
+              textInputAction: TextInputAction.search,
+              style: const TextStyle(color: ColorConstants.whiteText),
+              cursorColor: ColorConstants.darkPrimaryIcon,
+              decoration: InputDecoration(
+                hintText: 'Scan atau cari produk...',
+                hintStyle: const TextStyle(color: ColorConstants.grayText),
+                prefixIcon:
+                    const Icon(Icons.search, color: ColorConstants.darkPrimaryIcon),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, color: ColorConstants.darkPrimaryIcon),
+                        onPressed: _clearSearch,
+                      )
+                    : null,
+                border: InputBorder.none,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+              onSubmitted: (value) {
+                _searchDebounce?.cancel();
+                _opnameBloc?.add(
+                    GetOpnameProductsEvent(searchValue: value.trim()));
+              },
+            ),
+          ),
+        ),
         Expanded(
           child: BlocBuilder<OpnameBloc, OpnameState>(
             builder: (context, state) {
               if (state is OpnameLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return const Center(
+                    child: CircularProgressIndicator(
+                        color: ColorConstants.darkPrimaryIcon));
               }
               if (state is OpnameError) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(state.message),
+                      Text(
+                        state.message,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: ColorConstants.whiteText),
+                      ),
+                      const SizedBox(height: 12),
                       ElevatedButton(
-                        onPressed: () => context
-                            .read<OpnameBloc>()
-                            .add(const GetOpnameProductsEvent()),
-                        child: const Text('Retry'),
+                        onPressed: () => _opnameBloc
+                            ?.add(const GetOpnameProductsEvent()),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: ColorConstants.darkPrimaryIcon),
+                        child: const Text(
+                            'Retry', style: TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
                 );
               }
               if (state is OpnameInProgress) {
+                if (state.items.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Produk tidak ditemukan.\nCoba ketik di search bar (mis. "a")',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: ColorConstants.whiteText),
+                    ),
+                  );
+                }
                 return _buildOpnameList(context, state.items);
               }
-              return const Center(child: Text('Mulai stock opname'));
+              return const Center(
+                  child: Text('Mulai stock opname',
+                      style: TextStyle(color: ColorConstants.whiteText)));
             },
           ),
         ),
@@ -151,19 +334,26 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
     return BlocBuilder<OpnameBloc, OpnameState>(
       builder: (context, state) {
         if (state is OpnameLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+              child: CircularProgressIndicator(
+                  color: ColorConstants.darkPrimaryIcon));
         }
         if (state is OpnameError) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(state.message),
+                Text(
+                  state.message,
+                  style: const TextStyle(color: ColorConstants.whiteText),
+                ),
                 ElevatedButton(
-                  onPressed: () => context
-                      .read<OpnameBloc>()
-                      .add(const GetOpnameProductsEvent()),
-                  child: const Text('Retry'),
+                  onPressed: () =>
+                      _opnameBloc?.add(const GetOpnameProductsEvent()),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: ColorConstants.darkPrimaryIcon),
+                  child:
+                      const Text('Retry', style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),
@@ -172,7 +362,9 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
         if (state is OpnameInProgress) {
           return _buildOpnameList(context, state.items);
         }
-        return const Center(child: Text('Pilih rak untuk memulai'));
+        return const Center(
+            child: Text('Pilih rak untuk memulai',
+                style: TextStyle(color: ColorConstants.whiteText)));
       },
     );
   }
@@ -180,51 +372,52 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Scan atau cari produk...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onSubmitted: (value) {
-                context.read<OpnameBloc>().add(GetOpnameProductsEvent(
-                  searchValue: value,
-                ));
-              },
-            ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: ColorConstants.darkTextField,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: ColorConstants.glassBorder),
+        ),
+        child: TextField(
+          controller: _searchController,
+          textInputAction: TextInputAction.search,
+          style: const TextStyle(color: ColorConstants.whiteText),
+          cursorColor: ColorConstants.darkPrimaryIcon,
+          decoration: InputDecoration(
+            hintText: 'Scan atau cari produk...',
+            hintStyle: const TextStyle(color: ColorConstants.grayText),
+            prefixIcon: const Icon(Icons.search, color: ColorConstants.darkPrimaryIcon),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear, color: ColorConstants.darkPrimaryIcon),
+                    onPressed: _clearSearch,
+                  )
+                : null,
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: Icon(_isScanning ? Icons.close : Icons.qr_code_scanner),
-            onPressed: () => _toggleScanner(context),
-          ),
-        ],
+          onSubmitted: (value) {
+            _searchDebounce?.cancel();
+            _opnameBloc?.add(GetOpnameProductsEvent(searchValue: value.trim()));
+          },
+        ),
       ),
     );
   }
 
   Widget _buildOpnameList(BuildContext context, List<OpnameItemModel> items) {
-    if (items.isEmpty) {
-      return const Center(child: Text('Produk tidak ditemukan'));
-    }
-
     return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
         return OpnameItemWidget(
           item: item,
           onActualStockChanged: (value) {
-            context.read<OpnameBloc>().add(UpdateActualStockEvent(
-                  productId: item.productId,
-                  actualStock: value,
-                ));
+            _opnameBloc?.add(UpdateActualStockEvent(
+              productId: item.productId,
+              actualStock: value,
+            ));
           },
         );
       },
@@ -232,31 +425,13 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
   }
 
   Widget _buildSubmitBar(BuildContext context, OpnameInProgress state) {
-    return Container(
+    return GlowCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(50),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () => _showSubmitConfirmation(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: const Text('SUBMIT OPNAME'),
-          ),
-        ),
+      borderColor: ColorConstants.greenPrice.withOpacity(0.3),
+      child: GradientButton(
+        text: 'SUBMIT OPNAME',
+        onPressed: () => _showSubmitConfirmation(context),
+        gradientColors: [ColorConstants.greenPrice, ColorConstants.secondaryBlue],
       ),
     );
   }
@@ -274,6 +449,7 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
       showDialog(
         context: context,
         builder: (ctx) => Dialog(
+          backgroundColor: ColorConstants.glassCardSolid,
           child: SizedBox(
             width: 300,
             height: 400,
@@ -282,8 +458,6 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
                 final barcode = capture.barcodes.firstOrNull;
                 if (barcode?.rawValue != null) {
                   _searchController.text = barcode!.rawValue!;
-                  context.read<OpnameBloc>().add(
-                      GetOpnameProductsEvent(searchValue: barcode.rawValue!));
                   Navigator.pop(ctx);
                   setState(() => _isScanning = false);
                 }
@@ -295,31 +469,34 @@ class _OpnameViewState extends State<OpnameView> with SingleTickerProviderStateM
     }
   }
 
-  Future<void> _pickImage(BuildContext context) async {
-    // Implement image picker here using image_picker package
-    // For now, show a message that gallery scanning is not implemented
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Gallery scanning not implemented yet')),
-    );
-  }
-
   void _showSubmitConfirmation(BuildContext context) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Submit Opname?'),
-        content: const Text('Pastikan semua data stock sudah benar.'),
+        backgroundColor: ColorConstants.glassCardSolid,
+        title: const Text(
+          'Submit Opname?',
+          style: TextStyle(color: ColorConstants.whiteText),
+        ),
+        content: const Text(
+          'Pastikan semua data stock sudah benar.',
+          style: TextStyle(color: ColorConstants.grayText),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
+            child:
+                const Text('Batal', style: TextStyle(color: ColorConstants.grayText)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              context.read<OpnameBloc>().add(const SubmitOpnameEvent());
+              _opnameBloc?.add(const SubmitOpnameEvent());
             },
-            child: const Text('Submit'),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: ColorConstants.darkPrimaryIcon),
+            child:
+                const Text('Submit', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

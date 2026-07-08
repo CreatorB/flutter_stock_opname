@@ -1,8 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
-import 'package:syathiby/features/theme/bloc/theme_state.dart';
+import 'package:flutter/material.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
 
 class CustomTrailing extends StatelessWidget {
@@ -20,33 +17,29 @@ class CustomTrailing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ThemeBloc, ThemeState>(
-      builder: (context, themeState) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            (isLoading && showLoadingIndicator)
-                ? const CupertinoActivityIndicator()
-                : CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: isLoading ? null : onPressed,
-                    child: Text(
-                      text,
-                      style: TextStyle(
-                        color: isLoading
-                            ? themeState.isDark
-                                ? ColorConstants.darkInactive
-                                : ColorConstants.lightInactive
-                            : themeState.isDark
-                                ? ColorConstants.darkPrimaryIcon
-                                : ColorConstants.lightPrimaryIcon,
-                      ),
-                    ).tr(),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        (isLoading && showLoadingIndicator)
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(ColorConstants.darkPrimaryIcon),
+                ),
+              )
+            : TextButton(
+                onPressed: isLoading ? null : onPressed,
+                child: Text(
+                  text.tr(),
+                  style: TextStyle(
+                    color: isLoading ? ColorConstants.darkInactive : ColorConstants.darkPrimaryIcon,
                   ),
-          ],
-        );
-      },
+                ),
+              ),
+      ],
     );
   }
 }
