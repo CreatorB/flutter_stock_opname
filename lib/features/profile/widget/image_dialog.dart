@@ -171,8 +171,7 @@ class _ImageDialogState extends State<ImageDialog>
                                                       if (context.canPop())
                                                         context.pop();
                                                     },
-                                                    minimumSize:
-                                                        const Size(30, 30),
+                                                    minSize: 30,
                                                     child: const Icon(
                                                         CupertinoIcons.clear,
                                                         size: 18,
