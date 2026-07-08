@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
+import 'package:syathiby/common/widgets/gradient_header.dart';
+import 'package:syathiby/common/widgets/glow_card.dart';
+import 'package:syathiby/common/widgets/gradient_button.dart';
 import 'package:syathiby/features/payment/bloc/payment_bloc.dart';
 import 'package:syathiby/features/payment/bloc/payment_state.dart';
 import 'package:syathiby/features/sale/bloc/sale_bloc.dart';
@@ -14,83 +18,140 @@ class PaymentMethodView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SaleBloc, SaleState>(
       builder: (context, saleState) {
-        final total = saleState is SaleInProgress ? saleState.totalAmount : 0.0;
+        final total =
+            saleState is SaleInProgress ? saleState.totalAmount : 0.0;
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Metode Pembayaran'),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Total Bayar',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Rp ${_formatNumber(total.toStringAsFixed(0))}',
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Pilih Metode Pembayaran',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => _navigateToCashPayment(context, total),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+          body: Column(
+            children: [
+              const GradientHeader(title: 'Metode Pembayaran'),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Icon(Icons.money),
-                      SizedBox(width: 12),
-                      Text('TUNAI', style: TextStyle(fontSize: 18)),
+                      GlowCard(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          children: [
+                            const Text(
+                              'Total Bayar',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: ColorConstants.grayText,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Rp ${_formatNumber(total.toStringAsFixed(0))}',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: ColorConstants.greenPrice,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Pilih Metode Pembayaran',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: ColorConstants.whiteText,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      GlowCard(
+                        glowColor: ColorConstants.darkPrimaryIcon,
+                        borderColor: ColorConstants.darkPrimaryIcon.withOpacity(0.3),
+                        onTap: () => _navigateToCashPayment(context, total),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    ColorConstants.darkPrimaryIcon,
+                                    ColorConstants.darkPrimaryIcon.withOpacity(0.6),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.money,
+                                color: Colors.white,
+                                size: 26,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Text(
+                              'TUNAI',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: ColorConstants.whiteText,
+                              ),
+                            ),
+                            const Spacer(),
+                            const Icon(
+                              Icons.chevron_right,
+                              color: ColorConstants.darkPrimaryIcon,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      GlowCard(
+                        glowColor: ColorConstants.secondaryBlue,
+                        borderColor: ColorConstants.secondaryBlue.withOpacity(0.3),
+                        onTap: () => _navigateToEdcPayment(context, total),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    ColorConstants.secondaryBlue,
+                                    ColorConstants.secondaryBlue.withOpacity(0.6),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.credit_card,
+                                color: Colors.white,
+                                size: 26,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Text(
+                              'EDC',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: ColorConstants.whiteText,
+                              ),
+                            ),
+                            const Spacer(),
+                            const Icon(
+                              Icons.chevron_right,
+                              color: ColorConstants.secondaryBlue,
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () => _navigateToEdcPayment(context, total),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.credit_card),
-                      SizedBox(width: 12),
-                      Text('EDC', style: TextStyle(fontSize: 18)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
@@ -100,18 +161,14 @@ class PaymentMethodView extends StatelessWidget {
   void _navigateToCashPayment(BuildContext context, double total) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => CashPaymentView(total: total),
-      ),
+      MaterialPageRoute(builder: (context) => CashPaymentView(total: total)),
     );
   }
 
   void _navigateToEdcPayment(BuildContext context, double total) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => EdcPaymentView(total: total),
-      ),
+      MaterialPageRoute(builder: (context) => EdcPaymentView(total: total)),
     );
   }
 

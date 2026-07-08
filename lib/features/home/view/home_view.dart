@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syathiby/core/di/injection.dart';
 import 'package:syathiby/core/services/shared_preferences_service.dart';
+import 'package:syathiby/core/constants/color_constants.dart';
+import 'package:syathiby/common/widgets/gradient_header.dart';
+import 'package:syathiby/common/widgets/glow_card.dart';
 import 'package:syathiby/features/dummies/laporan_screen.dart';
 import 'package:syathiby/features/dummies/setoran_screen.dart';
 import 'package:syathiby/features/opname/bloc/opname_bloc.dart';
@@ -16,98 +19,221 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-      ),
-      body: GridView.count(
-        padding: const EdgeInsets.all(24.0),
-        crossAxisCount: 2,
-        crossAxisSpacing: 16.0,
-        mainAxisSpacing: 16.0,
-        children: [
-          _buildMenuCard(
-            context: context,
-            icon: Icons.point_of_sale,
-            label: 'PENJUALAN',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SaleView()),
-              );
-            },
-          ),
-          _buildMenuCard(
-            context: context,
-            icon: Icons.inventory,
-            label: 'OPNAME',
-            onTap: () {
-              final saleCompleted = SharedPreferencesService.instance
-                  .getData<bool>(PreferenceKey.saleCompletedToday) ?? false;
-              if (!saleCompleted) {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Perhatian'),
-                    content: const Text(
-                        'Anda harus menyelesaikan transaksi penjualan terlebih dahulu sebelum melakukan stock opname.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('OK'),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            GradientHeader(
+              title: 'Dashboard',
+              subtitle: 'Kelola bisnis Anda dengan mudah',
+              showWave: true,
+              leading: null,
+              trailing: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
+                  onPressed: () {},
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMenuCard(
+                          context: context,
+                          icon: Icons.shopping_cart_outlined,
+                          iconColor: ColorConstants.darkPrimaryIcon,
+                          glowColor: ColorConstants.darkPrimaryIcon,
+                          label: 'PENJUALAN',
+                          desc: 'Kelola transaksi penjualan harian',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SaleView(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildMenuCard(
+                          context: context,
+                          icon: Icons.inventory_2_outlined,
+                          iconColor: ColorConstants.secondaryBlue,
+                          glowColor: ColorConstants.secondaryBlue,
+                          label: 'OPNAME',
+                          desc: 'Lakukan pengecekan stok barang',
+                          onTap: () {
+                            final saleCompleted =
+                                SharedPreferencesService.instance.getData<bool>(
+                                      PreferenceKey.saleCompletedToday,
+                                    ) ??
+                                    false;
+                            if (!saleCompleted) {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  backgroundColor: ColorConstants.glassCardSolid,
+                                  title: const Text(
+                                    'Perhatian',
+                                    style: TextStyle(color: ColorConstants.whiteText),
+                                  ),
+                                  content: const Text(
+                                    'Anda harus menyelesaikan transaksi penjualan terlebih dahulu sebelum melakukan stock opname.',
+                                    style: TextStyle(color: ColorConstants.grayText),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text(
+                                        'OK',
+                                        style: TextStyle(color: ColorConstants.darkPrimaryIcon),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              return;
+                            }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BlocProvider(
+                                  create: (_) => sl<OpnameBloc>()
+                                    ..add(const GetOpnameProductsEvent()),
+                                  child: const OpnameView(),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),
-                );
-                return;
-              }
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BlocProvider(
-                    create: (_) => sl<OpnameBloc>()..add(const GetOpnameProductsEvent()),
-                    child: const OpnameView(),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMenuCard(
+                          context: context,
+                          icon: Icons.savings_outlined,
+                          iconColor: ColorConstants.secondaryBlue,
+                          glowColor: ColorConstants.secondaryBlue,
+                          label: 'SETORAN',
+                          desc: 'Catat dan kelola setoran kas',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SetoranScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildMenuCard(
+                          context: context,
+                          icon: Icons.bar_chart_outlined,
+                          iconColor: ColorConstants.darkPrimaryIcon,
+                          glowColor: ColorConstants.darkPrimaryIcon,
+                          label: 'LAPORAN',
+                          desc: 'Lihat laporan dan analisis data',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LaporanScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              );
-            },
-          ),
-          _buildMenuCard(
-            context: context,
-            icon: Icons.savings,
-            label: 'SETORAN',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SetoranScreen()),
-              );
-            },
-          ),
-          _buildMenuCard(
-            context: context,
-            icon: Icons.bar_chart,
-            label: 'LAPORAN',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LaporanScreen()),
-              );
-            },
-          ),
-          _buildMenuCard(
-            context: context,
-            icon: Icons.list_alt,
-            label: 'PRODUK',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProductListView()),
-              );
-            },
-          ),
-        ],
+                  const SizedBox(height: 12),
+                  _buildMenuCard(
+                    context: context,
+                    icon: Icons.list_alt_outlined,
+                    iconColor: const Color(0xFF00bcd4),
+                    glowColor: const Color(0xFF00bcd4),
+                    label: 'PRODUK',
+                    desc: 'Kelola data produk & stok',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProductListView(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  GlowCard(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: ColorConstants.darkPrimaryIcon.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.trending_up,
+                            color: ColorConstants.darkPrimaryIcon,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Ringkasan Hari Ini',
+                                style: TextStyle(
+                                  color: ColorConstants.whiteText,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Pantau perkembangan bisnis Anda secara real-time',
+                                style: TextStyle(
+                                  color: ColorConstants.grayText,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: ColorConstants.darkPrimaryIcon,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 100),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -115,32 +241,76 @@ class HomeView extends StatelessWidget {
   Widget _buildMenuCard({
     required BuildContext context,
     required IconData icon,
+    required Color iconColor,
+    required Color glowColor,
     required String label,
+    required String desc,
     required VoidCallback onTap,
   }) {
-    return Card(
-      elevation: 4.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 50, color: Colors.blueAccent),
-            const SizedBox(height: 16.0),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+    return GlowCard(
+      glowColor: glowColor,
+      borderColor: glowColor.withOpacity(0.3),
+      padding: const EdgeInsets.all(16),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      glowColor,
+                      glowColor.withOpacity(0.6),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: glowColor.withOpacity(0.4),
+                      blurRadius: 12,
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: Colors.white, size: 26),
               ),
-              textAlign: TextAlign.center,
+              const Spacer(),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: glowColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.chevron_right,
+                  color: glowColor,
+                  size: 18,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: const TextStyle(
+              color: ColorConstants.whiteText,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            desc,
+            style: const TextStyle(
+              color: ColorConstants.grayText,
+              fontSize: 11,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,11 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
-import 'package:syathiby/features/theme/bloc/theme_state.dart';
+import 'package:flutter/material.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/locale_keys.g.dart';
-import 'package:syathiby/common/helpers/ui_helper.dart';
 
 class LoginButton extends StatelessWidget {
   final bool isLoading;
@@ -15,35 +11,46 @@ class LoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ThemeBloc, ThemeState>(
-      builder: (context, themeState) {
-        return SizedBox(
-          width: UIHelper.deviceWidth,
-          child: CupertinoButton(
-            color: themeState.isDark
-                ? ColorConstants.darkPrimaryIcon
-                : ColorConstants.lightPrimaryIcon,
-            onPressed: isLoading ? null : onPressed,
-            borderRadius: const BorderRadius.all(Radius.circular(10)),
-            padding: const EdgeInsets.all(10),
-            disabledColor: themeState.isDark
-                ? ColorConstants.darkPrimaryIcon
-                : ColorConstants.lightPrimaryIcon,
-            pressedOpacity: 0.5,
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: ColorConstants.orangeBlueGradient,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
             child: isLoading
-                ? const CupertinoActivityIndicator(
-                    color: CupertinoColors.white,
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
                   )
                 : Text(
                     LocaleKeys.login.tr(),
                     style: const TextStyle(
-                      color: CupertinoColors.white,
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
+                      fontSize: 17,
                     ),
                   ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
