@@ -56,8 +56,9 @@ Future<void> setupLocator() async {
       headers: {
         'Accept': 'application/json',
       },
-      connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 3),
+      connectTimeout: const Duration(minutes: 1),
+      receiveTimeout: const Duration(minutes: 1),
+      sendTimeout: const Duration(minutes: 1),
     ));
 
     dio.interceptors.add(DeviceInterceptor());
