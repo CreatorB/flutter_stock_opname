@@ -47,15 +47,28 @@ class LoginService {
       }
     } on DioException catch (e) {
       LoggerUtil.error('Login error', e);
+      String userMessage;
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          userMessage = 'Koneksi timeout. Periksa jaringan Anda.';
+          break;
+        case DioExceptionType.connectionError:
+          userMessage = 'Tidak dapat terhubung ke server. Periksa koneksi Anda.';
+          break;
+        default:
+          userMessage = e.response?.data is Map ? (e.response?.data['msg']?.toString() ?? 'Login gagal') : 'Login gagal';
+      }
       return HttpResponseModel(
         statusCode: e.response?.statusCode ?? 500,
-        message: e.response?.data['msg'] ?? e.message ?? 'Connection error',
+        message: userMessage,
       );
     } catch (e) {
       LoggerUtil.error('Login unknown error', e);
       return HttpResponseModel(
         statusCode: 500,
-        message: e.toString(),
+        message: 'Terjadi kesalahan. Coba lagi.',
       );
     }
   }
