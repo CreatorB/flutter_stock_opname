@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
+import 'package:syathiby/core/utils/router/routes.dart';
 import 'package:syathiby/features/sale/bloc/sale_bloc.dart';
 import 'package:syathiby/features/sale/bloc/sale_event.dart';
 import 'package:syathiby/features/sale/bloc/sale_state.dart';
@@ -135,6 +137,6 @@ class ReceiptView extends StatelessWidget {
 
   void _newTransaction(BuildContext context) {
     context.read<SaleBloc>().add(const ClearCartEvent());
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    context.go(Routes.navigation.path);
   }
 }

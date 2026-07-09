@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
 
 class GradientHeader extends StatelessWidget {
@@ -42,7 +43,11 @@ class GradientHeader extends StatelessWidget {
                     leading ??
                         IconButton(
                           icon: const Icon(Icons.arrow_back_ios, size: 18, color: Colors.white),
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () {
+                            if (context.canPop()) {
+                              context.pop();
+                            }
+                          },
                         ),
                     Expanded(
                       child: Column(
