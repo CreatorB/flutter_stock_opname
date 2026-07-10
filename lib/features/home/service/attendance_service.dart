@@ -5,13 +5,13 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'dart:convert';
+import 'package:syathiby/core/constants/app_constants.dart';
 import 'package:syathiby/core/models/http_response_model.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:syathiby/features/profile/service/user_service.dart';
 
 class AttendanceService {
-  final String _baseUrl = dotenv.env['BASE_URL'] ?? "";
+  final String _baseUrl = AppConstants.baseUrl;
   final UserService _userService = UserService();
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
   final NetworkInfo _networkInfo = NetworkInfo();
