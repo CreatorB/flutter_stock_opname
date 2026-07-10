@@ -2,14 +2,14 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:syathiby/core/interfaces/user_interface.dart';
+import 'package:syathiby/core/constants/app_constants.dart';
 import 'package:syathiby/core/models/http_response_model.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:syathiby/core/services/shared_preferences_service.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
 import 'package:syathiby/features/profile/model/user_model.dart';
 
 class UserService extends UserInterface {
-  final String _baseUrl = dotenv.env['BASE_URL'] ?? "";
+  final String _baseUrl = AppConstants.baseUrl;
   final dio = Dio();
 
   Future<HttpResponseModel> login(

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
+import 'package:syathiby/core/constants/app_constants.dart';
 import 'package:syathiby/core/services/device_info_service.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
 import 'package:syathiby/features/announcement/cubit/announcement_cubit.dart';
@@ -52,7 +52,7 @@ Future<void> setupLocator() async {
   // External
   sl.registerLazySingleton<Dio>(() {
     final dio = Dio(BaseOptions(
-      baseUrl: dotenv.env['BASE_URL'] ?? '',
+      baseUrl: AppConstants.baseUrl,
       headers: {
         'Accept': 'application/json',
       },
