@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:syathiby/locale_keys.g.dart';
 
 class AppConstants {
@@ -10,6 +11,14 @@ class AppConstants {
   static final passwordRegex =
       RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$');
   static const objUser = 'obj_user';
+
+  static const String _defaultBaseUrl =
+      String.fromEnvironment('BASE_URL', defaultValue: '');
+
+  static String get baseUrl {
+    if (_defaultBaseUrl.isNotEmpty) return _defaultBaseUrl;
+    return dotenv.env['BASE_URL'] ?? '';
+  }
 
   static List<int> genders = [1, 2, 3];
 
