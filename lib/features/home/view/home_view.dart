@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syathiby/core/di/injection.dart';
-import 'package:syathiby/core/services/shared_preferences_service.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/common/widgets/gradient_header.dart';
 import 'package:syathiby/common/widgets/glow_card.dart';
@@ -74,37 +73,6 @@ class HomeView extends StatelessWidget {
                           label: 'OPNAME',
                           desc: 'Lakukan pengecekan stok barang',
                           onTap: () {
-                            final saleCompleted =
-                                SharedPreferencesService.instance.getData<bool>(
-                                      PreferenceKey.saleCompletedToday,
-                                    ) ??
-                                    false;
-                            if (!saleCompleted) {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  backgroundColor: ColorConstants.glassCardSolid,
-                                  title: const Text(
-                                    'Perhatian',
-                                    style: TextStyle(color: ColorConstants.whiteText),
-                                  ),
-                                  content: const Text(
-                                    'Anda harus menyelesaikan transaksi penjualan terlebih dahulu sebelum melakukan stock opname.',
-                                    style: TextStyle(color: ColorConstants.grayText),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text(
-                                        'OK',
-                                        style: TextStyle(color: ColorConstants.darkPrimaryIcon),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                              return;
-                            }
                             Navigator.push(
                               context,
                               MaterialPageRoute(
