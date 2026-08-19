@@ -15,6 +15,8 @@ import 'package:syathiby/features/product/bloc/product_bloc.dart';
 import 'package:syathiby/features/product/service/product_service.dart';
 import 'package:syathiby/features/sale/bloc/sale_bloc.dart';
 import 'package:syathiby/features/sale/service/sale_service.dart';
+import 'package:syathiby/features/setoran/bloc/setoran_bloc.dart';
+import 'package:syathiby/features/setoran/service/setoran_service.dart';
 import 'package:syathiby/features/theme/bloc/theme_bloc.dart';
 
 final sl = GetIt.instance;
@@ -34,6 +36,7 @@ Future<void> setupLocator() async {
         productService: sl(),
       ));
   sl.registerFactory(() => PaymentBloc());
+  sl.registerFactory(() => SetoranBloc(setoranService: sl()));
 
   // Services
   sl.registerLazySingleton<AnnouncementService>(
@@ -48,6 +51,8 @@ Future<void> setupLocator() async {
       () => OpnameService(sl()));
   sl.registerLazySingleton<RackService>(
       () => RackService(sl()));
+  sl.registerLazySingleton<SetoranService>(
+      () => SetoranService(sl()));
 
   // External
   sl.registerLazySingleton<Dio>(() {
