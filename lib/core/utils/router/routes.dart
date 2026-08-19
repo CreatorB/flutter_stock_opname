@@ -14,6 +14,7 @@ enum Routes {
   edc_payment('/edc_payment'),
   receipt('/receipt'),
   opname('/opname'),
+  setoran('/setoran'),
   ;
 
   final String path;
