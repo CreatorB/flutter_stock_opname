@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:syathiby/core/di/injection.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
+import 'package:syathiby/core/utils/router/routes.dart';
 import 'package:syathiby/common/widgets/gradient_header.dart';
 import 'package:syathiby/common/widgets/glow_card.dart';
 import 'package:syathiby/features/dummies/laporan_screen.dart';
-import 'package:syathiby/features/dummies/setoran_screen.dart';
 import 'package:syathiby/features/opname/bloc/opname_bloc.dart';
 import 'package:syathiby/features/opname/bloc/opname_event.dart';
 import 'package:syathiby/features/opname/view/opname_view.dart';
@@ -100,12 +101,7 @@ class HomeView extends StatelessWidget {
                           label: 'SETORAN',
                           desc: 'Catat dan kelola setoran kas',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SetoranScreen(),
-                              ),
-                            );
+                            context.push(Routes.setoran.path);
                           },
                         ),
                       ),
