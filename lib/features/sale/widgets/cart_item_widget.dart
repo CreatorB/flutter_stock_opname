@@ -5,8 +5,13 @@ import 'package:syathiby/features/sale/models/cart_item_model.dart';
 
 class CartItemWidget extends StatelessWidget {
   final CartItemModel cartItem;
-  final Function(int quantity, String priceMode, String? priceArea, String? manualPrice)
-      onUpdate;
+  final Function(
+    int quantity,
+    String priceMode,
+    String? priceArea,
+    int? priceListIndex,
+    String? manualPrice,
+  ) onUpdate;
   final VoidCallback onRemove;
 
   const CartItemWidget({
@@ -68,7 +73,8 @@ class CartItemWidget extends StatelessWidget {
   Widget _buildPriceInfo() {
     String priceLabel;
     if (cartItem.priceMode == PriceMode.retail) {
-      priceLabel = 'Harga ${cartItem.selectedPriceArea?.name.replaceAll('area', '') ?? '1'}';
+      final area = cartItem.selectedPriceArea?.name.replaceAll('area', '') ?? '1';
+      priceLabel = 'Harga $area';
     } else {
       priceLabel = 'Harga Grosir';
     }
@@ -108,6 +114,7 @@ class CartItemWidget extends StatelessWidget {
                           cartItem.quantity - 1,
                           cartItem.priceMode == PriceMode.retail ? 'retail' : 'grosir',
                           cartItem.selectedPriceArea?.name,
+                          cartItem.selectedPriceListIndex,
                           cartItem.manualPrice,
                         )
                     : null,
@@ -135,6 +142,7 @@ class CartItemWidget extends StatelessWidget {
                   cartItem.quantity + 1,
                   cartItem.priceMode == PriceMode.retail ? 'retail' : 'grosir',
                   cartItem.selectedPriceArea?.name,
+                  cartItem.selectedPriceListIndex,
                   cartItem.manualPrice,
                 ),
               ),

@@ -26,6 +26,12 @@ class SaleBloc extends Bloc<SaleEvent, SaleState> {
 
     if (existingIndex >= 0) {
       _cartItems[existingIndex].quantity++;
+      if (event.retailPriceList != null || event.grosirPriceList != null) {
+        _cartItems[existingIndex] = _cartItems[existingIndex].copyWith(
+          retailPriceList: event.retailPriceList,
+          grosirPriceList: event.grosirPriceList,
+        );
+      }
     } else {
       _cartItems.add(CartItemModel(
         productId: event.productId,
@@ -35,6 +41,8 @@ class SaleBloc extends Bloc<SaleEvent, SaleState> {
         priceArea2: event.priceArea2,
         priceArea3: event.priceArea3,
         buyPrice: event.buyPrice,
+        retailPriceList: event.retailPriceList,
+        grosirPriceList: event.grosirPriceList,
       ));
     }
 
@@ -69,9 +77,22 @@ class SaleBloc extends Bloc<SaleEvent, SaleState> {
         );
       }
 
+      if (event.priceListIndex != null) {
+        _cartItems[index] = _cartItems[index].copyWith(
+          selectedPriceListIndex: event.priceListIndex,
+        );
+      }
+
       if (event.manualPrice != null) {
         _cartItems[index] = _cartItems[index].copyWith(
           manualPrice: event.manualPrice,
+        );
+      }
+
+      if (event.retailPriceList != null || event.grosirPriceList != null) {
+        _cartItems[index] = _cartItems[index].copyWith(
+          retailPriceList: event.retailPriceList,
+          grosirPriceList: event.grosirPriceList,
         );
       }
 

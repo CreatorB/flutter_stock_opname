@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:syathiby/features/product/models/price_list_model.dart';
 
 abstract class SaleEvent extends Equatable {
   const SaleEvent();
@@ -15,6 +16,8 @@ class AddToCartEvent extends SaleEvent {
   final String? priceArea2;
   final String? priceArea3;
   final String? buyPrice;
+  final PriceListModel? retailPriceList;
+  final PriceListModel? grosirPriceList;
 
   const AddToCartEvent({
     required this.productId,
@@ -24,6 +27,8 @@ class AddToCartEvent extends SaleEvent {
     this.priceArea2,
     this.priceArea3,
     this.buyPrice,
+    this.retailPriceList,
+    this.grosirPriceList,
   });
 
   @override
@@ -35,6 +40,8 @@ class AddToCartEvent extends SaleEvent {
         priceArea2,
         priceArea3,
         buyPrice,
+        retailPriceList,
+        grosirPriceList,
       ];
 }
 
@@ -43,14 +50,20 @@ class UpdateCartItemEvent extends SaleEvent {
   final int quantity;
   final String? priceMode;
   final String? selectedPriceArea;
+  final int? priceListIndex;
   final String? manualPrice;
+  final PriceListModel? retailPriceList;
+  final PriceListModel? grosirPriceList;
 
   const UpdateCartItemEvent({
     required this.productId,
     required this.quantity,
     this.priceMode,
     this.selectedPriceArea,
+    this.priceListIndex,
     this.manualPrice,
+    this.retailPriceList,
+    this.grosirPriceList,
   });
 
   @override
@@ -59,7 +72,10 @@ class UpdateCartItemEvent extends SaleEvent {
         quantity,
         priceMode,
         selectedPriceArea,
+        priceListIndex,
         manualPrice,
+        retailPriceList,
+        grosirPriceList,
       ];
 }
 
