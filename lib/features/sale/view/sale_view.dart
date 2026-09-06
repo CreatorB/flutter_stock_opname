@@ -10,6 +10,7 @@ import 'package:syathiby/common/widgets/glow_card.dart';
 import 'package:syathiby/features/product/bloc/product_bloc.dart';
 import 'package:syathiby/features/product/bloc/product_event.dart';
 import 'package:syathiby/features/product/bloc/product_state.dart';
+import 'package:syathiby/features/product/models/price_list_model.dart';
 import 'package:syathiby/features/sale/bloc/sale_bloc.dart';
 import 'package:syathiby/features/sale/bloc/sale_event.dart';
 import 'package:syathiby/features/sale/bloc/sale_state.dart';
@@ -419,7 +420,7 @@ class _SaleViewState extends State<SaleView> {
               builder: (ctx, setModalState) {
                 return PriceSelectorWidget(
                   cartItem: cartItem,
-                  onUpdate: (qty, priceMode, priceArea, manualPrice) {
+                  onUpdate: (qty, priceMode, priceArea, priceListIndex, manualPrice) {
                     cartItem = cartItem.copyWith(
                       priceMode:
                           priceMode == 'grosir' ? PriceMode.grosir : PriceMode.retail,
@@ -429,6 +430,7 @@ class _SaleViewState extends State<SaleView> {
                               orElse: () => PriceArea.area1,
                             )
                           : null,
+                      selectedPriceListIndex: priceListIndex,
                       manualPrice: manualPrice,
                       quantity: qty,
                     );
@@ -438,6 +440,7 @@ class _SaleViewState extends State<SaleView> {
                       quantity: qty,
                       priceMode: priceMode,
                       selectedPriceArea: priceArea,
+                      priceListIndex: priceListIndex,
                       manualPrice: manualPrice,
                     ));
                   },
@@ -454,6 +457,9 @@ class _SaleViewState extends State<SaleView> {
                     product: product,
                     priceMode: cartItem.priceMode,
                     selectedPriceArea: cartItem.selectedPriceArea,
+                    selectedPriceListIndex: cartItem.selectedPriceListIndex,
+                    retailPriceList: cartItem.retailPriceList,
+                    grosirPriceList: cartItem.grosirPriceList,
                     manualPrice: cartItem.manualPrice,
                     quantity: cartItem.quantity,
                   );
@@ -480,33 +486,30 @@ class _SaleViewState extends State<SaleView> {
     required dynamic product,
     required PriceMode priceMode,
     required PriceArea? selectedPriceArea,
+    required int? selectedPriceListIndex,
     required String? manualPrice,
     required int quantity,
+    PriceListModel? retailPriceList,
+    PriceListModel? grosirPriceList,
   }) {
     String? priceArea;
-    String? priceValue;
 
     if (priceMode == PriceMode.retail) {
       switch (selectedPriceArea) {
         case PriceArea.area1:
           priceArea = 'area1';
-          priceValue = product.priceArea1;
           break;
         case PriceArea.area2:
           priceArea = 'area2';
-          priceValue = product.priceArea2;
           break;
         case PriceArea.area3:
           priceArea = 'area3';
-          priceValue = product.priceArea3;
           break;
         default:
           priceArea = 'area1';
-          priceValue = product.priceArea1;
       }
     } else {
       priceArea = 'grosir';
-      priceValue = manualPrice ?? '0';
     }
 
     final state = context.read<SaleBloc>().state;
@@ -525,6 +528,8 @@ class _SaleViewState extends State<SaleView> {
         priceArea2: product.priceArea2,
         priceArea3: product.priceArea3,
         buyPrice: product.buyPrice,
+        retailPriceList: retailPriceList,
+        grosirPriceList: grosirPriceList,
       ));
     }
 
@@ -533,7 +538,11 @@ class _SaleViewState extends State<SaleView> {
       quantity: quantity,
       priceMode: priceMode == PriceMode.grosir ? 'grosir' : 'retail',
       selectedPriceArea: priceArea,
-      manualPrice: priceMode == PriceMode.grosir ? priceValue : null,
+      priceListIndex: selectedPriceListIndex,
+      manualPrice:
+          priceMode == PriceMode.grosir ? (manualPrice ?? '0') : null,
+      retailPriceList: retailPriceList,
+      grosirPriceList: grosirPriceList,
     ));
   }
 

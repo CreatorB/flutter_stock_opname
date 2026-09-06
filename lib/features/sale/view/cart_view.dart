@@ -9,7 +9,6 @@ import 'package:syathiby/features/sale/bloc/sale_bloc.dart';
 import 'package:syathiby/features/sale/bloc/sale_event.dart';
 import 'package:syathiby/features/sale/bloc/sale_state.dart';
 import 'package:syathiby/features/sale/widgets/cart_item_widget.dart';
-import 'package:syathiby/features/sale/widgets/price_selector_widget.dart';
 
 class CartView extends StatelessWidget {
   const CartView({super.key});
@@ -76,12 +75,13 @@ class CartView extends StatelessWidget {
                 final item = state.cartItems[index];
                 return CartItemWidget(
                   cartItem: item,
-                  onUpdate: (qty, priceMode, priceArea, manualPrice) {
+                  onUpdate: (qty, priceMode, priceArea, priceListIndex, manualPrice) {
                     context.read<SaleBloc>().add(UpdateCartItemEvent(
                           productId: item.productId,
                           quantity: qty,
                           priceMode: priceMode,
                           selectedPriceArea: priceArea,
+                          priceListIndex: priceListIndex,
                           manualPrice: manualPrice,
                         ));
                   },

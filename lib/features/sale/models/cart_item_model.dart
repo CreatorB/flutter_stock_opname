@@ -1,3 +1,5 @@
+import 'package:syathiby/features/product/models/price_list_model.dart';
+
 enum PriceMode { retail, grosir }
 
 enum PriceArea { area1, area2, area3 }
@@ -8,11 +10,14 @@ class CartItemModel {
   final String productName;
   final PriceMode priceMode;
   final PriceArea? selectedPriceArea;
+  final int? selectedPriceListIndex;
   final String? manualPrice;
   final String? priceArea1;
   final String? priceArea2;
   final String? priceArea3;
   final String? buyPrice;
+  final PriceListModel? retailPriceList;
+  final PriceListModel? grosirPriceList;
   int quantity;
 
   CartItemModel({
@@ -21,15 +26,41 @@ class CartItemModel {
     required this.productName,
     this.priceMode = PriceMode.retail,
     this.selectedPriceArea = PriceArea.area1,
+    this.selectedPriceListIndex,
     this.manualPrice,
     this.priceArea1,
     this.priceArea2,
     this.priceArea3,
     this.buyPrice,
+    this.retailPriceList,
+    this.grosirPriceList,
     this.quantity = 1,
   });
 
+  List<PriceListItem> get activeDisplayList {
+    if (priceMode == PriceMode.retail) {
+      return retailPriceList?.retailDisplay ?? const [];
+    }
+    return grosirPriceList?.grosirDisplay ?? const [];
+  }
+
+  PriceListItem? get activeSelectedItem {
+    final list = activeDisplayList;
+    if (list.isEmpty) return null;
+    final idx = selectedPriceListIndex ?? 0;
+    if (idx < 0 || idx >= list.length) return list.first;
+    return list[idx];
+  }
+
   String get selectedPrice {
+    if (priceMode == PriceMode.grosir && grosirPriceList != null) {
+      final item = activeSelectedItem;
+      if (item != null) return item.price ?? '0';
+    }
+    if (priceMode == PriceMode.retail && retailPriceList != null) {
+      final item = activeSelectedItem;
+      if (item != null) return item.price ?? '0';
+    }
     if (priceMode == PriceMode.retail) {
       switch (selectedPriceArea) {
         case PriceArea.area1:
@@ -41,9 +72,8 @@ class CartItemModel {
         default:
           return priceArea1 ?? '0';
       }
-    } else {
-      return manualPrice ?? '0';
     }
+    return manualPrice ?? '0';
   }
 
   double get selectedPriceDouble => double.tryParse(selectedPrice) ?? 0;
@@ -52,6 +82,9 @@ class CartItemModel {
 
   bool isValidGrosirPrice() {
     if (priceMode != PriceMode.grosir) return true;
+    if (grosirPriceList != null) {
+      return selectedPriceDouble >= buyPriceDouble;
+    }
     return selectedPriceDouble >= buyPriceDouble;
   }
 
@@ -61,11 +94,14 @@ class CartItemModel {
     String? productName,
     PriceMode? priceMode,
     PriceArea? selectedPriceArea,
+    int? selectedPriceListIndex,
     String? manualPrice,
     String? priceArea1,
     String? priceArea2,
     String? priceArea3,
     String? buyPrice,
+    PriceListModel? retailPriceList,
+    PriceListModel? grosirPriceList,
     int? quantity,
   }) {
     return CartItemModel(
@@ -74,11 +110,15 @@ class CartItemModel {
       productName: productName ?? this.productName,
       priceMode: priceMode ?? this.priceMode,
       selectedPriceArea: selectedPriceArea ?? this.selectedPriceArea,
+      selectedPriceListIndex:
+          selectedPriceListIndex ?? this.selectedPriceListIndex,
       manualPrice: manualPrice ?? this.manualPrice,
       priceArea1: priceArea1 ?? this.priceArea1,
       priceArea2: priceArea2 ?? this.priceArea2,
       priceArea3: priceArea3 ?? this.priceArea3,
       buyPrice: buyPrice ?? this.buyPrice,
+      retailPriceList: retailPriceList ?? this.retailPriceList,
+      grosirPriceList: grosirPriceList ?? this.grosirPriceList,
       quantity: quantity ?? this.quantity,
     );
   }
@@ -90,6 +130,7 @@ class CartItemModel {
       'product_name': productName,
       'price_mode': priceMode.name,
       'selected_price_area': selectedPriceArea?.name,
+      'selected_price_list_index': selectedPriceListIndex,
       'manual_price': manualPrice,
       'price_area1': priceArea1,
       'price_area2': priceArea2,

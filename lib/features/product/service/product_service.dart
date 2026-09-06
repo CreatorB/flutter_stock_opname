@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:syathiby/core/models/http_response_model.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
 import 'package:syathiby/features/product/models/category_model.dart';
+import 'package:syathiby/features/product/models/price_list_model.dart';
 import 'package:syathiby/features/product/models/product_model.dart';
 import 'package:syathiby/features/product/models/unit_model.dart';
 
@@ -179,6 +180,78 @@ class ProductService {
       );
     } catch (e) {
       LoggerUtil.error('Get stock unknown error', e);
+      return HttpResponseModel(
+        statusCode: 500,
+        message: e.toString(),
+      );
+    }
+  }
+
+  Future<HttpResponseModel<PriceListModel>> getPriceList({
+    required String brId,
+    required String pId,
+    required int isGrosir,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/product/get_pricelist',
+        data: FormData.fromMap({
+          'br_id': brId,
+          'p_id': pId,
+          'is_grosir': isGrosir,
+        }),
+      );
+
+      LoggerUtil.debug(
+        'get_pricelist raw response: br_id=$brId p_id=$pId is_grosir=$isGrosir data=${response.data}',
+      );
+
+      final dynamic body = response.data;
+      final bool apiStatus = body is Map && body['status'] == true;
+
+      if (apiStatus) {
+        final dynamic raw = body['result'];
+        PriceListModel priceList;
+        if (raw is Map<String, dynamic>) {
+          priceList = PriceListModel.fromJson(raw);
+        } else if (raw is List) {
+          priceList = PriceListModel.fromJson({'result': raw});
+        } else {
+          priceList = PriceListModel.fromJson({
+            'result': body,
+          });
+        }
+        if (priceList.pId == null) {
+          priceList = PriceListModel(pId: pId, items: priceList.items);
+        }
+        LoggerUtil.debug(
+          'get_pricelist parsed: items=${priceList.items.length} pId=${priceList.pId}',
+        );
+        return HttpResponseModel(
+          statusCode: response.statusCode,
+          data: priceList,
+          message: body['msg'],
+        );
+      } else {
+        final String msg = (body is Map && body['msg'] != null)
+            ? body['msg'].toString()
+            : 'Gagal memuat daftar harga';
+        LoggerUtil.debug(
+          'get_pricelist status false: msg=$msg data=${response.data}',
+        );
+        return HttpResponseModel(
+          statusCode: response.statusCode,
+          message: msg,
+        );
+      }
+    } on DioException catch (e) {
+      LoggerUtil.error('Get price list error', e);
+      return HttpResponseModel(
+        statusCode: e.response?.statusCode ?? 500,
+        message: e.message ?? 'Connection error',
+      );
+    } catch (e, stack) {
+      LoggerUtil.error('Get price list unknown error', e, stack);
       return HttpResponseModel(
         statusCode: 500,
         message: e.toString(),
