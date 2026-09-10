@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:syathiby/features/home/service/rack_model.dart';
 
 abstract class OpnameState extends Equatable {
   const OpnameState();
@@ -18,29 +17,21 @@ class OpnameLoading extends OpnameState {
 
 class OpnameInProgress extends OpnameState {
   final List<OpnameItemModel> items;
-  final List<RackModel> racks;
-  final String? selectedRaId;
 
   const OpnameInProgress({
     this.items = const [],
-    this.racks = const [],
-    this.selectedRaId,
   });
 
   OpnameInProgress copyWith({
     List<OpnameItemModel>? items,
-    List<RackModel>? racks,
-    String? selectedRaId,
   }) {
     return OpnameInProgress(
       items: items ?? this.items,
-      racks: racks ?? this.racks,
-      selectedRaId: selectedRaId ?? this.selectedRaId,
     );
   }
 
   @override
-  List<Object?> get props => [items, racks, selectedRaId];
+  List<Object?> get props => [items];
 }
 
 class OpnameSubmitting extends OpnameState {
@@ -72,8 +63,6 @@ class OpnameItemModel extends Equatable {
   final String productName;
   final String systemStock;
   final String actualStock;
-  final String? raId;
-  final String? raName;
 
   const OpnameItemModel({
     required this.productId,
@@ -81,8 +70,6 @@ class OpnameItemModel extends Equatable {
     required this.productName,
     required this.systemStock,
     this.actualStock = '',
-    this.raId,
-    this.raName,
   });
 
   int get systemStockInt => int.tryParse(systemStock) ?? 0;
@@ -95,8 +82,6 @@ class OpnameItemModel extends Equatable {
     String? productName,
     String? systemStock,
     String? actualStock,
-    String? raId,
-    String? raName,
   }) {
     return OpnameItemModel(
       productId: productId ?? this.productId,
@@ -104,12 +89,10 @@ class OpnameItemModel extends Equatable {
       productName: productName ?? this.productName,
       systemStock: systemStock ?? this.systemStock,
       actualStock: actualStock ?? this.actualStock,
-      raId: raId ?? this.raId,
-      raName: raName ?? this.raName,
     );
   }
 
   @override
   List<Object?> get props =>
-      [productId, productCode, productName, systemStock, actualStock, raId, raName];
+      [productId, productCode, productName, systemStock, actualStock];
 }
