@@ -1,8 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syathiby/core/services/shared_preferences_service.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
-import 'package:syathiby/features/home/service/rack_model.dart';
-import 'package:syathiby/features/home/service/rack_service.dart';
 import 'package:syathiby/features/opname/bloc/opname_event.dart';
 import 'package:syathiby/features/opname/bloc/opname_state.dart';
 import 'package:syathiby/features/opname/service/opname_service.dart';
@@ -10,12 +8,10 @@ import 'package:syathiby/features/product/service/product_service.dart';
 
 class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
   final OpnameService opnameService;
-  final RackService rackService;
   final ProductService productService;
 
   OpnameBloc({
     required this.opnameService,
-    required this.rackService,
     required this.productService,
   }) : super(const OpnameInitial()) {
     on<GetOpnameProductsEvent>(_onGetProducts);
@@ -23,89 +19,42 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
     on<SubmitOpnameEvent>(_onSubmitOpname);
     on<ResetOpnameEvent>(_onResetOpname);
     on<ScanBarcodeEvent>(_onScanBarcode);
-    on<LoadRacksEvent>(_onLoadRacks);
-    on<ChangeRackEvent>(_onChangeRack);
     on<ScanFromGalleryEvent>(_onScanFromGallery);
     on<UndoScanEvent>(_onUndoScan);
   }
 
   List<OpnameItemModel> _opnameItems = [];
-  List<RackModel> _racks = [];
-  String? _selectedRaId;
 
   void _onGetProducts(
       GetOpnameProductsEvent event, Emitter<OpnameState> emit) async {
     emit(const OpnameLoading());
 
     try {
-      final rackFuture = rackService.getRacks();
-      final productFuture = productService.getProducts(
+      final productResponse = await productService.getProducts(
         searchValue: event.searchValue,
       );
 
-      final rackResponse = await rackFuture;
-      final productResponse = await productFuture;
-
-      LoggerUtil.debug(
-        'Rack fetch: status=${rackResponse.statusCode} count=${rackResponse.data?.length ?? 0}',
-      );
-
-      if (rackResponse.statusCode == 200 && rackResponse.data != null) {
-        _racks = rackResponse.data!;
-
-        if (_racks.isEmpty) {
-          LoggerUtil.warning('No racks available for this user/branch');
-          emit(const OpnameError(
-              'Tidak ada rak tersedia. Hubungi admin untuk setup rak.'));
-          return;
-        }
-
-        String? raIdToUse = event.raId ?? _selectedRaId;
-        if (raIdToUse == null || raIdToUse.isEmpty) {
-          raIdToUse = _racks.first.raId.isEmpty ? null : _racks.first.raId;
-        }
-        if (raIdToUse != null && raIdToUse.isNotEmpty) {
-          _selectedRaId = raIdToUse;
-          LoggerUtil.debug(
-            'Selected rack: $raIdToUse (${_findRackName(raIdToUse)})',
+      if (productResponse.statusCode == 200 && productResponse.data != null) {
+        _opnameItems = productResponse.data!.map((p) {
+          return OpnameItemModel(
+            productId: p.id ?? '',
+            productCode: p.pCode ?? '',
+            productName: p.pName ?? '',
+            systemStock: p.stock ?? '0',
+            actualStock: '0',
           );
-        } else {
-          LoggerUtil.warning('Auto-select failed: first rack has empty ra_id');
-        }
+        }).toList();
 
-        if (productResponse.statusCode == 200 && productResponse.data != null) {
-          _opnameItems = productResponse.data!.map((p) {
-            return OpnameItemModel(
-              productId: p.id ?? '',
-              productCode: p.pCode ?? '',
-              productName: p.pName ?? '',
-              systemStock: p.stock ?? '0',
-              actualStock: '0',
-              raId: raIdToUse,
-              raName: _findRackName(raIdToUse),
-            );
-          }).toList();
-        }
-
-        emit(OpnameInProgress(
-          items: _opnameItems,
-          racks: _racks,
-          selectedRaId: raIdToUse,
-        ));
+        emit(OpnameInProgress(items: _opnameItems));
       } else {
         emit(OpnameError(
-            '[${rackResponse.statusCode}] ${rackResponse.message ?? 'Failed to load racks'}'));
+          '[${productResponse.statusCode}] ${productResponse.message ?? 'Failed to load products'}',
+        ));
       }
     } catch (e, stack) {
       LoggerUtil.error('Error fetching opname products', e, stack);
       emit(OpnameError('Error: ${e.toString()}'));
     }
-  }
-
-  String? _findRackName(String? raId) {
-    if (raId == null) return null;
-    final match = _racks.where((r) => r.raId == raId);
-    return match.isNotEmpty ? match.first.raName : null;
   }
 
   void _onUpdateActualStock(
@@ -181,11 +130,6 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
     }
   }
 
-  void _onChangeRack(ChangeRackEvent event, Emitter<OpnameState> emit) async {
-    _selectedRaId = event.raId;
-    add(GetOpnameProductsEvent(raId: event.raId));
-  }
-
   void _onScanFromGallery(ScanFromGalleryEvent event, Emitter<OpnameState> emit) async {
     if (state is OpnameInProgress) {
       emit(const OpnameError('Scan from gallery belum didukung oleh API'));
@@ -208,34 +152,11 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
     }
   }
 
-  void _onLoadRacks(LoadRacksEvent event, Emitter<OpnameState> emit) async {
-    try {
-      final response = await rackService.getRacks();
-
-      if (response.statusCode == 200 && response.data != null) {
-        _racks = response.data!;
-        if (_racks.isNotEmpty && _selectedRaId == null) {
-          _selectedRaId = _racks.first.raId;
-        }
-        if (state is OpnameInProgress) {
-          emit((state as OpnameInProgress).copyWith(racks: _racks));
-        }
-      }
-    } catch (e, stack) {
-      LoggerUtil.error('Error loading racks', e, stack);
-    }
-  }
-
   Future<void> _onSubmitOpname(
       SubmitOpnameEvent event, Emitter<OpnameState> emit) async {
     if (state is! OpnameInProgress) return;
 
     final currentState = state as OpnameInProgress;
-
-    if (_selectedRaId == null || _selectedRaId!.isEmpty) {
-      emit(const OpnameError('Please select a rack'));
-      return;
-    }
 
     final hasItems = currentState.items.any(
       (i) => (int.tryParse(i.actualStock) ?? 0) > 0,
@@ -260,7 +181,6 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
 
     try {
       final response = await opnameService.doFinish(
-        raId: _selectedRaId!,
         jenis: 'TOKO',
       );
 
@@ -269,7 +189,6 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
             .setData(PreferenceKey.saleCompletedToday, false);
 
         _opnameItems = [];
-        _selectedRaId = null;
 
         emit(OpnameSuccess(
           opnameId: response.data!.opnameId ?? '',
@@ -288,14 +207,6 @@ class OpnameBloc extends Bloc<OpnameEvent, OpnameState> {
 
   void _onResetOpname(ResetOpnameEvent event, Emitter<OpnameState> emit) {
     _opnameItems = [];
-    _selectedRaId = null;
     emit(const OpnameInitial());
-  }
-
-  void selectRack(String raId) {
-    _selectedRaId = raId;
-    if (state is OpnameInProgress) {
-      emit((state as OpnameInProgress).copyWith(selectedRaId: raId));
-    }
   }
 }

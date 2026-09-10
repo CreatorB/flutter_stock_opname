@@ -9,12 +9,11 @@ abstract class OpnameEvent extends Equatable {
 
 class GetOpnameProductsEvent extends OpnameEvent {
   final String searchValue;
-  final String? raId;
 
-  const GetOpnameProductsEvent({this.searchValue = '', this.raId});
+  const GetOpnameProductsEvent({this.searchValue = ''});
 
   @override
-  List<Object?> get props => [searchValue, raId];
+  List<Object?> get props => [searchValue];
 }
 
 class UpdateActualStockEvent extends OpnameEvent {
@@ -47,19 +46,6 @@ class ScanBarcodeEvent extends OpnameEvent {
   List<Object?> get props => [productId, productCode, productName, qty];
 }
 
-class LoadRacksEvent extends OpnameEvent {
-  const LoadRacksEvent();
-}
-
-class ChangeRackEvent extends OpnameEvent {
-  final String raId;
-
-  const ChangeRackEvent(this.raId);
-
-  @override
-  List<Object?> get props => [raId];
-}
-
 class ScanFromGalleryEvent extends OpnameEvent {
   final String imagePath;
 
@@ -76,15 +62,6 @@ class UndoScanEvent extends OpnameEvent {
 
   @override
   List<Object?> get props => [productId];
-}
-
-class SelectRackEvent extends OpnameEvent {
-  final String raId;
-
-  const SelectRackEvent(this.raId);
-
-  @override
-  List<Object?> get props => [raId];
 }
 
 class SubmitOpnameEvent extends OpnameEvent {

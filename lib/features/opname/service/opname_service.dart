@@ -121,7 +121,6 @@ class OpnameService {
   }
 
   Future<HttpResponseModel<OpnameFinishResponseModel>> doFinish({
-    required String raId,
     String jenis = 'TOKO',
   }) async {
     try {
@@ -141,7 +140,7 @@ class OpnameService {
           .getData<String>(PreferenceKey.authToken);
 
       LoggerUtil.debug(
-        'doFinish request: ra_id=$raId jenis=$jenis user_id=$userId br_id=$brId',
+        'doFinish request: jenis=$jenis user_id=$userId br_id=$brId',
       );
 
       final response = await _dio.post(
@@ -150,7 +149,6 @@ class OpnameService {
           'token': token,
           'user_id': userId,
           'br_id': brId,
-          'ra_id': raId,
           'jenis': jenis,
         }),
       );

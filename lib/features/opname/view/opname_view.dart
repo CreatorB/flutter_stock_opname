@@ -6,7 +6,6 @@ import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/common/widgets/gradient_header.dart';
 import 'package:syathiby/common/widgets/glow_card.dart';
 import 'package:syathiby/common/widgets/gradient_button.dart';
-import 'package:syathiby/features/home/service/rack_model.dart';
 import 'package:syathiby/features/opname/bloc/opname_bloc.dart';
 import 'package:syathiby/features/opname/bloc/opname_event.dart';
 import 'package:syathiby/features/opname/bloc/opname_state.dart';
@@ -73,24 +72,18 @@ class _OpnameViewState extends State<OpnameView>
         children: [
           GradientHeader(
             title: 'Stock Opname',
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildRackAction(),
-                Container(
-                  decoration: BoxDecoration(
-                    color: ColorConstants.darkPrimaryIcon,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      _isScanning ? Icons.close : Icons.qr_code_scanner,
-                      color: Colors.white,
-                    ),
-                    onPressed: () => _toggleScanner(context),
-                  ),
+            trailing: Container(
+              decoration: BoxDecoration(
+                color: ColorConstants.darkPrimaryIcon,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: IconButton(
+                icon: Icon(
+                  _isScanning ? Icons.close : Icons.qr_code_scanner,
+                  color: Colors.white,
                 ),
-              ],
+                onPressed: () => _toggleScanner(context),
+              ),
             ),
           ),
           Padding(
@@ -152,87 +145,6 @@ class _OpnameViewState extends State<OpnameView>
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRackAction() {
-    return BlocBuilder<OpnameBloc, OpnameState>(
-      builder: (context, state) {
-        if (state is! OpnameInProgress || state.racks.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        final selected = state.racks.firstWhere(
-          (r) => r.raId == state.selectedRaId,
-          orElse: () => state.racks.first,
-        );
-        return Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: TextButton(
-            onPressed: () => _showRackPicker(context, state),
-            child: Text(
-              selected.raName,
-              style: const TextStyle(color: Colors.white),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showRackPicker(BuildContext context, OpnameInProgress state) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: ColorConstants.glassCardSolid,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Pilih Rak',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: ColorConstants.whiteText,
-                ),
-              ),
-            ),
-            const Divider(height: 1, color: ColorConstants.glassBorder),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: state.racks.length,
-                itemBuilder: (_, i) {
-                  final rack = state.racks[i];
-                  final selected = rack.raId == state.selectedRaId;
-                  return ListTile(
-                    leading: Icon(
-                      selected ? Icons.check_circle : Icons.inventory_2,
-                      color: selected
-                          ? ColorConstants.darkPrimaryIcon
-                          : ColorConstants.grayText,
-                    ),
-                    title: Text(
-                      rack.raName,
-                      style: TextStyle(
-                        color: selected
-                            ? ColorConstants.whiteText
-                            : ColorConstants.grayText,
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _opnameBloc?.add(ChangeRackEvent(rack.raId));
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -363,45 +275,9 @@ class _OpnameViewState extends State<OpnameView>
           return _buildOpnameList(context, state.items);
         }
         return const Center(
-            child: Text('Pilih rak untuk memulai',
+            child: Text('Mulai stock opname',
                 style: TextStyle(color: ColorConstants.whiteText)));
       },
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: ColorConstants.darkTextField,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: ColorConstants.glassBorder),
-        ),
-        child: TextField(
-          controller: _searchController,
-          textInputAction: TextInputAction.search,
-          style: const TextStyle(color: ColorConstants.whiteText),
-          cursorColor: ColorConstants.darkPrimaryIcon,
-          decoration: InputDecoration(
-            hintText: 'Scan atau cari produk...',
-            hintStyle: const TextStyle(color: ColorConstants.grayText),
-            prefixIcon: const Icon(Icons.search, color: ColorConstants.darkPrimaryIcon),
-            suffixIcon: _searchController.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear, color: ColorConstants.darkPrimaryIcon),
-                    onPressed: _clearSearch,
-                  )
-                : null,
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
-          onSubmitted: (value) {
-            _searchDebounce?.cancel();
-            _opnameBloc?.add(GetOpnameProductsEvent(searchValue: value.trim()));
-          },
-        ),
-      ),
     );
   }
 
