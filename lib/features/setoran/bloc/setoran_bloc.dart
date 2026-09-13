@@ -85,9 +85,9 @@ class SetoranBloc extends Bloc<SetoranEvent, SetoranState> {
 
     try {
       final response = await setoranService.saveDeposit(
-        tunaiAmount: current.summary.tunai ?? '0',
-        edcAmount: current.summary.edc ?? '0',
-        tunaiedcAmount: current.summary.tunaiedc ?? '0',
+        tunaiAmount: current.summary.tunaiPlain,
+        edcAmount: current.summary.edcPlain,
+        tunaiedcAmount: current.summary.tunaiedcPlain,
         amount: current.amountInput,
       );
 

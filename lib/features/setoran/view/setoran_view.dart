@@ -20,6 +20,7 @@ class SetoranView extends StatefulWidget {
 class _SetoranViewState extends State<SetoranView> {
   final TextEditingController _amountController = TextEditingController();
   SetoranBloc? _bloc;
+  SetoranReadyForInput? _lastReady;
 
   @override
   void initState() {
@@ -45,8 +46,12 @@ class _SetoranViewState extends State<SetoranView> {
     final raw = _amountController.text.replaceAll(RegExp(r'[^0-9]'), '');
     final formatted = _formatNumber(raw);
     if (formatted != _amountController.text) {
+      final baseOffset = _amountController.selection.baseOffset;
+      final safeOffset = baseOffset < 0
+          ? _amountController.text.length
+          : baseOffset.clamp(0, _amountController.text.length);
       final cursorAfterRaw = _amountController.text
-          .substring(0, _amountController.selection.baseOffset)
+          .substring(0, safeOffset)
           .replaceAll(RegExp(r'[^0-9]'), '')
           .length;
       _amountController.value = TextEditingValue(
@@ -175,9 +180,10 @@ class _SetoranViewState extends State<SetoranView> {
       return _buildInputView(context, state);
     }
     if (state is SetoranSubmitting) {
-      return _buildInputView(
+      return _buildInputContent(
         context,
-        const SetoranReadyForInput(summary: SetoranTrxSummaryModel()),
+        _lastReady ?? const SetoranReadyForInput(summary: SetoranTrxSummaryModel()),
+        isEditable: false,
       );
     }
     return const SizedBox.shrink();
@@ -300,20 +306,17 @@ class _SetoranViewState extends State<SetoranView> {
   }
 
   Widget _buildInputView(BuildContext context, SetoranReadyForInput state) {
-    if (state.summary.tunaiDouble == 0 &&
-        state.summary.edcDouble == 0 &&
-        state.summary.tunaiedcDouble == 0) {
-      return _buildInputContent(context, state, isPlaceholder: true);
-    }
+    _lastReady = state;
     return _buildInputContent(context, state);
   }
 
   Widget _buildInputContent(
     BuildContext context,
     SetoranReadyForInput state, {
-    bool isPlaceholder = false,
+    bool isEditable = true,
   }) {
-    final isReady = !isPlaceholder;
+    final isReady = isEditable;
+    final noTrx = state.summary.isEmpty;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -335,25 +338,33 @@ class _SetoranViewState extends State<SetoranView> {
                 _buildSummaryRow(
                   'Total Penjualan Tunai',
                   _formatRupiah(state.summary.tunaiDouble),
-                  enabled: isReady,
                 ),
                 _buildSummaryRow(
                   'Total Penjualan EDC',
                   _formatRupiah(state.summary.edcDouble),
-                  enabled: isReady,
                 ),
                 _buildSummaryRow(
                   'Total Tunai + EDC',
                   _formatRupiah(state.summary.tunaiedcDouble),
-                  enabled: isReady,
                 ),
                 const Divider(color: ColorConstants.glassBorder),
                 _buildSummaryRow(
                   'Total Pemasukan',
                   _formatRupiah(state.summary.total),
                   isTotal: true,
-                  enabled: isReady,
                 ),
+                if (noTrx)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: Text(
+                      'Belum ada transaksi penjualan hari ini. '
+                      'Jumlah setoran tetap bisa diisi manual.',
+                      style: TextStyle(
+                        color: ColorConstants.grayText,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -400,7 +411,7 @@ class _SetoranViewState extends State<SetoranView> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSelisihRow(state, isReady),
+          _buildSelisihRow(state),
           const SizedBox(height: 32),
           GradientButton(
             text: 'SIMPAN SETORAN',
@@ -415,10 +426,10 @@ class _SetoranViewState extends State<SetoranView> {
     );
   }
 
-  Widget _buildSelisihRow(SetoranReadyForInput state, bool enabled) {
-    final diff = enabled ? state.difference : -state.summary.tunaiDouble;
+  Widget _buildSelisihRow(SetoranReadyForInput state) {
+    final diff = state.difference;
     Color color = ColorConstants.grayText;
-    if (enabled && state.amountInput.isNotEmpty) {
+    if (state.amountInput.isNotEmpty) {
       if (diff == 0) {
         color = ColorConstants.greenPrice;
       } else if (diff > 0) {
@@ -426,8 +437,6 @@ class _SetoranViewState extends State<SetoranView> {
       } else {
         color = ColorConstants.redError;
       }
-    } else if (!enabled) {
-      color = ColorConstants.grayText;
     }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

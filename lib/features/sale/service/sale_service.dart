@@ -37,6 +37,8 @@ class SaleService {
         data: formData,
       );
 
+      LoggerUtil.debug('do_trx response: ${response.data}');
+
       if (response.data['status'] == true) {
         final saleResponse =
             SaleResponseModel.fromJson(response.data);
