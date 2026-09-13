@@ -33,6 +33,8 @@ class SetoranService {
         }),
       );
 
+      LoggerUtil.debug('check_deposit response: ${response.data}');
+
       if (response.data['status'] == true) {
         final dynamic result = response.data['result'];
         SetoranCheckModel? model;
@@ -108,14 +110,15 @@ class SetoranService {
         }),
       );
 
+      LoggerUtil.debug('get_trx_2d response: ${response.data}');
+
       if (response.data['status'] == true) {
         final dynamic result = response.data['result'];
 
-        SetoranTrxSummaryModel summary;
-        if (result is Map<String, dynamic>) {
-          summary = SetoranTrxSummaryModel.fromJson(result);
-        } else {
-          summary = SetoranTrxSummaryModel.fromJson(
+        var summary = SetoranTrxSummaryModel.fromResult(result);
+        if (summary.isEmpty && response.data is Map) {
+          // Sebagian endpoint menaruh angka langsung di root response.
+          summary = SetoranTrxSummaryModel.fromResult(
             Map<String, dynamic>.from(response.data),
           );
         }
