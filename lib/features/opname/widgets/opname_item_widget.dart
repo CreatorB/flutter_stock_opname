@@ -20,6 +20,7 @@ class OpnameItemWidget extends StatefulWidget {
 
 class _OpnameItemWidgetState extends State<OpnameItemWidget> {
   late TextEditingController _controller;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -28,7 +29,20 @@ class _OpnameItemWidgetState extends State<OpnameItemWidget> {
   }
 
   @override
+  void didUpdateWidget(covariant OpnameItemWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Qty bisa berubah dari luar (mis. hasil scan atau daftar dimuat ulang
+    // setelah pencarian). Jangan timpa saat user sedang mengetik.
+    if (widget.item.actualStock != _controller.text && !_focusNode.hasFocus) {
+      _controller.text = widget.item.actualStock;
+      _controller.selection =
+          TextSelection.collapsed(offset: _controller.text.length);
+    }
+  }
+
+  @override
   void dispose() {
+    _focusNode.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -113,6 +127,7 @@ class _OpnameItemWidgetState extends State<OpnameItemWidget> {
                       ),
                       child: TextFormField(
                         controller: _controller,
+                        focusNode: _focusNode,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -122,6 +137,8 @@ class _OpnameItemWidgetState extends State<OpnameItemWidget> {
                         cursorColor: ColorConstants.darkPrimaryIcon,
                         decoration: const InputDecoration(
                           border: InputBorder.none,
+                          hintText: '0',
+                          hintStyle: TextStyle(color: ColorConstants.grayText),
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,

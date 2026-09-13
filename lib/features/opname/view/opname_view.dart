@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:syathiby/core/constants/color_constants.dart';
@@ -26,11 +25,17 @@ class _OpnameViewState extends State<OpnameView>
   Timer? _searchDebounce;
   OpnameBloc? _opnameBloc;
   bool _isScanning = false;
+  OpnameInProgress? _lastProgress;
+  bool _isSubmitDialogOpen = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    // Highlight tab ikut berpindah saat digeser, bukan hanya saat ditekan.
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -67,6 +72,101 @@ class _OpnameViewState extends State<OpnameView>
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<OpnameBloc, OpnameState>(
+      listener: _onStateChanged,
+      child: _buildScaffold(context),
+    );
+  }
+
+  void _onStateChanged(BuildContext context, OpnameState state) {
+    if (state is OpnameInProgress) {
+      _lastProgress = state;
+    }
+
+    if (state is OpnameSubmitting) {
+      _showSubmitProgress(context);
+      return;
+    }
+
+    _closeSubmitProgress();
+
+    if (state is OpnameError) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(state.message),
+            backgroundColor: ColorConstants.redError,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+    } else if (state is OpnameSuccess) {
+      _searchController.clear();
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: ColorConstants.glassCardSolid,
+          title: const Text(
+            'Opname Berhasil',
+            style: TextStyle(color: ColorConstants.whiteText),
+          ),
+          content: Text(
+            state.opnameId.isNotEmpty
+                ? 'Stock opname tersimpan.\nNo. Opname: ${state.opnameId}'
+                : 'Stock opname tersimpan.',
+            style: const TextStyle(color: ColorConstants.grayText),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                // Tetap di layar opname dengan daftar kosong, siap hitung ulang.
+                _opnameBloc?.add(const ResetOpnameEvent());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ColorConstants.greenPrice,
+              ),
+              child: const Text('OK', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void _showSubmitProgress(BuildContext context) {
+    if (_isSubmitDialogOpen) return;
+    _isSubmitDialogOpen = true;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: ColorConstants.darkPrimaryIcon),
+              SizedBox(height: 16),
+              Text(
+                'Menyimpan opname...',
+                style: TextStyle(color: ColorConstants.whiteText),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _closeSubmitProgress() {
+    if (!_isSubmitDialogOpen) return;
+    _isSubmitDialogOpen = false;
+    Navigator.of(context, rootNavigator: true).maybePop();
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
@@ -117,8 +217,10 @@ class _OpnameViewState extends State<OpnameView>
       ),
       bottomNavigationBar: BlocBuilder<OpnameBloc, OpnameState>(
         builder: (context, state) {
-          if (state is OpnameInProgress && _hasModifiedItems(state)) {
-            return _buildSubmitBar(context, state);
+          final progress =
+              state is OpnameInProgress ? state : _lastProgress;
+          if (progress != null && progress.countedItems.isNotEmpty) {
+            return _buildSubmitBar(context, progress);
           }
           return const SizedBox.shrink();
         },
@@ -197,7 +299,17 @@ class _OpnameViewState extends State<OpnameView>
                     child: CircularProgressIndicator(
                         color: ColorConstants.darkPrimaryIcon));
               }
+              if (state is OpnameSubmitting || state is OpnameSuccess) {
+                final fallback = _lastProgress;
+                if (fallback != null) {
+                  return _buildOpnameList(context, fallback.items);
+                }
+              }
               if (state is OpnameError) {
+                final fallback = _lastProgress;
+                if (fallback != null && fallback.items.isNotEmpty) {
+                  return _buildOpnameList(context, fallback.items);
+                }
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -271,8 +383,18 @@ class _OpnameViewState extends State<OpnameView>
             ),
           );
         }
-        if (state is OpnameInProgress) {
-          return _buildOpnameList(context, state.items);
+        final progress = state is OpnameInProgress ? state : _lastProgress;
+        if (progress != null) {
+          if (progress.countedItems.isEmpty) {
+            return const Center(
+              child: Text(
+                'Belum ada item yang dihitung.\nIsi qty di tab Manual dulu.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: ColorConstants.whiteText),
+              ),
+            );
+          }
+          return _buildOpnameList(context, progress.countedItems);
         }
         return const Center(
             child: Text('Mulai stock opname',
@@ -288,6 +410,7 @@ class _OpnameViewState extends State<OpnameView>
       itemBuilder: (context, index) {
         final item = items[index];
         return OpnameItemWidget(
+          key: ValueKey(item.productId),
           item: item,
           onActualStockChanged: (value) {
             _opnameBloc?.add(UpdateActualStockEvent(
@@ -301,19 +424,16 @@ class _OpnameViewState extends State<OpnameView>
   }
 
   Widget _buildSubmitBar(BuildContext context, OpnameInProgress state) {
+    final count = state.countedItems.length;
     return GlowCard(
       padding: const EdgeInsets.all(16),
       borderColor: ColorConstants.greenPrice.withOpacity(0.3),
       child: GradientButton(
-        text: 'SUBMIT OPNAME',
-        onPressed: () => _showSubmitConfirmation(context),
+        text: 'SUBMIT OPNAME ($count item)',
+        onPressed: () => _showSubmitConfirmation(context, count),
         gradientColors: [ColorConstants.greenPrice, ColorConstants.secondaryBlue],
       ),
     );
-  }
-
-  bool _hasModifiedItems(OpnameInProgress state) {
-    return state.items.any((item) => item.actualStockInt > 0);
   }
 
   void _toggleScanner(BuildContext context) {
@@ -345,7 +465,7 @@ class _OpnameViewState extends State<OpnameView>
     }
   }
 
-  void _showSubmitConfirmation(BuildContext context) {
+  void _showSubmitConfirmation(BuildContext context, int count) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -354,9 +474,9 @@ class _OpnameViewState extends State<OpnameView>
           'Submit Opname?',
           style: TextStyle(color: ColorConstants.whiteText),
         ),
-        content: const Text(
-          'Pastikan semua data stock sudah benar.',
-          style: TextStyle(color: ColorConstants.grayText),
+        content: Text(
+          '$count item akan dikirim. Pastikan semua data stock sudah benar.',
+          style: const TextStyle(color: ColorConstants.grayText),
         ),
         actions: [
           TextButton(
