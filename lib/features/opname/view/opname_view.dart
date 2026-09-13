@@ -26,7 +26,6 @@ class _OpnameViewState extends State<OpnameView>
   OpnameBloc? _opnameBloc;
   bool _isScanning = false;
   OpnameInProgress? _lastProgress;
-  bool _isSubmitDialogOpen = false;
 
   @override
   void initState() {
@@ -83,13 +82,6 @@ class _OpnameViewState extends State<OpnameView>
       _lastProgress = state;
     }
 
-    if (state is OpnameSubmitting) {
-      _showSubmitProgress(context);
-      return;
-    }
-
-    _closeSubmitProgress();
-
     if (state is OpnameError) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -135,40 +127,57 @@ class _OpnameViewState extends State<OpnameView>
     }
   }
 
-  void _showSubmitProgress(BuildContext context) {
-    if (_isSubmitDialogOpen) return;
-    _isSubmitDialogOpen = true;
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(color: ColorConstants.darkPrimaryIcon),
-              SizedBox(height: 16),
-              Text(
-                'Menyimpan opname...',
-                style: TextStyle(color: ColorConstants.whiteText),
-              ),
-            ],
+  /// Overlay progres dipasang di dalam layar, bukan sebagai dialog, supaya
+  /// tidak bertumpuk dengan dialog hasil submit.
+  Widget _buildSubmitOverlay() {
+    return Positioned.fill(
+      child: AbsorbPointer(
+        child: Container(
+          color: Colors.black54,
+          child: const Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: ColorConstants.darkPrimaryIcon),
+                SizedBox(height: 16),
+                Text(
+                  'Menyimpan opname...',
+                  style: TextStyle(color: ColorConstants.whiteText),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  void _closeSubmitProgress() {
-    if (!_isSubmitDialogOpen) return;
-    _isSubmitDialogOpen = false;
-    Navigator.of(context, rootNavigator: true).maybePop();
-  }
-
   Widget _buildScaffold(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: BlocBuilder<OpnameBloc, OpnameState>(
+        buildWhen: (prev, curr) =>
+            prev is OpnameSubmitting || curr is OpnameSubmitting,
+        builder: (context, state) => Stack(
+          children: [
+            _buildContent(context),
+            if (state is OpnameSubmitting) _buildSubmitOverlay(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BlocBuilder<OpnameBloc, OpnameState>(
+        builder: (context, state) {
+          final progress = state is OpnameInProgress ? state : _lastProgress;
+          if (progress != null && progress.countedItems.isNotEmpty) {
+            return _buildSubmitBar(context, progress);
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return Column(
         children: [
           GradientHeader(
             title: 'Stock Opname',
@@ -204,27 +213,16 @@ class _OpnameViewState extends State<OpnameView>
             ),
           ),
           const SizedBox(height: 8),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildManualTab(context),
-                _buildListTab(context),
-              ],
-            ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildManualTab(context),
+              _buildListTab(context),
+            ],
           ),
-        ],
-      ),
-      bottomNavigationBar: BlocBuilder<OpnameBloc, OpnameState>(
-        builder: (context, state) {
-          final progress =
-              state is OpnameInProgress ? state : _lastProgress;
-          if (progress != null && progress.countedItems.isNotEmpty) {
-            return _buildSubmitBar(context, progress);
-          }
-          return const SizedBox.shrink();
-        },
-      ),
+        ),
+      ],
     );
   }
 
