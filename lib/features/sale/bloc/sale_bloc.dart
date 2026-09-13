@@ -186,8 +186,8 @@ class SaleBloc extends Bloc<SaleEvent, SaleState> {
         await SharedPreferencesService.instance
             .setData(PreferenceKey.saleCompletedToday, true);
 
-        String printId = saleData?.id ?? response.data!.saleId ?? '';
-        String printUrl =
+        final String printId = saleData?.id ?? response.data!.saleId ?? '';
+        final String printUrl =
             'https://banghasyim.net/ZAHIR4/sale/sale/prints/$printId';
         emit(SaleSuccess(sale: saleData, printUrl: printUrl));
       } else {

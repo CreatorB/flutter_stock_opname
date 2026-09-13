@@ -76,12 +76,27 @@ class SaleResponseModel {
   });
 
   factory SaleResponseModel.fromJson(Map<String, dynamic> json) {
+    // do_trx mengembalikan {id, sale_code} di dalam `result`; sebagian respons
+    // lama memakai `data` atau menaruhnya langsung di root.
+    final payload = _payloadOf(json['result']) ??
+        _payloadOf(json['data']) ??
+        json;
+
     return SaleResponseModel(
       status: json['status'] ?? false,
       message: json['msg'],
-      data: json['data'] != null ? SaleModel.fromJson(json['data']) : null,
-      saleId: json['sale_id']?.toString(),
-      saleCode: json['sale_code'],
+      data: payload.isEmpty ? null : SaleModel.fromJson(payload),
+      saleId: (payload['id'] ?? payload['sale_id'] ?? json['sale_id'])
+          ?.toString(),
+      saleCode: (payload['sale_code'] ?? json['sale_code'])?.toString(),
     );
+  }
+
+  static Map<String, dynamic>? _payloadOf(dynamic value) {
+    if (value is Map) return Map<String, dynamic>.from(value);
+    if (value is List && value.isNotEmpty && value.first is Map) {
+      return Map<String, dynamic>.from(value.first as Map);
+    }
+    return null;
   }
 }
