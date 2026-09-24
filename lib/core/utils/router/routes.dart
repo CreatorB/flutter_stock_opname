@@ -15,6 +15,7 @@ enum Routes {
   receipt('/receipt'),
   opname('/opname'),
   setoran('/setoran'),
+  laporan('/laporan'),
   ;
 
   final String path;

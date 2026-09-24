@@ -6,6 +6,8 @@ import 'package:syathiby/features/auth/login/view/login_view.dart';
 import 'package:syathiby/features/auth/password/view/update_password_view.dart';
 import 'package:syathiby/features/auth/register/view/register_view.dart';
 import 'package:syathiby/features/auth/verify/view/verify_view.dart';
+import 'package:syathiby/features/laporan/bloc/laporan_bloc.dart';
+import 'package:syathiby/features/laporan/view/laporan_view.dart';
 import 'package:syathiby/features/navigation/view/navigation_view.dart';
 import 'package:syathiby/features/opname/bloc/opname_bloc.dart';
 import 'package:syathiby/features/opname/bloc/opname_event.dart';
@@ -68,6 +70,13 @@ final class RouterManager {
           create: (_) => sl<SetoranBloc>()
             ..add(const SetoranCheckDepositEvent()),
           child: const SetoranView(),
+        ),
+      ),
+      GoRoute(
+        path: Routes.laporan.path,
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<LaporanBloc>(),
+          child: const LaporanView(),
         ),
       ),
     ],

@@ -9,6 +9,14 @@ class SetoranService {
 
   SetoranService(this._dio);
 
+  String _extractErrorMessage(dynamic data, String? fallback) {
+    if (data is Map) {
+      final msg = data['msg'] ?? data['message'];
+      if (msg != null) return msg.toString();
+    }
+    return fallback ?? 'Connection error';
+  }
+
   Future<HttpResponseModel<SetoranCheckModel?>> checkDeposit() async {
     try {
       final userId = SharedPreferencesService.instance
@@ -74,8 +82,7 @@ class SetoranService {
       );
       return HttpResponseModel(
         statusCode: e.response?.statusCode ?? 500,
-        message:
-            e.response?.data?['msg']?.toString() ?? e.message ?? 'Connection error',
+        message: _extractErrorMessage(e.response?.data, e.message),
       );
     } catch (e) {
       LoggerUtil.error('check_deposit unknown error', e);
@@ -141,8 +148,7 @@ class SetoranService {
       );
       return HttpResponseModel(
         statusCode: e.response?.statusCode ?? 500,
-        message:
-            e.response?.data?['msg']?.toString() ?? e.message ?? 'Connection error',
+        message: _extractErrorMessage(e.response?.data, e.message),
       );
     } catch (e) {
       LoggerUtil.error('get_trx_2d unknown error', e);
@@ -218,8 +224,7 @@ class SetoranService {
       );
       return HttpResponseModel(
         statusCode: e.response?.statusCode ?? 500,
-        message:
-            e.response?.data?['msg']?.toString() ?? e.message ?? 'Connection error',
+        message: _extractErrorMessage(e.response?.data, e.message),
       );
     } catch (e) {
       LoggerUtil.error('do_finish deposit unknown error', e);
