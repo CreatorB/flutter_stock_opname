@@ -8,6 +8,8 @@ import 'package:syathiby/features/announcement/service/announcement_service.dart
 import 'package:syathiby/features/auth/login/bloc/login_bloc.dart';
 import 'package:syathiby/features/auth/login/service/login_service.dart';
 import 'package:syathiby/features/home/service/rack_service.dart';
+import 'package:syathiby/features/laporan/bloc/laporan_bloc.dart';
+import 'package:syathiby/features/laporan/service/laporan_service.dart';
 import 'package:syathiby/features/opname/bloc/opname_bloc.dart';
 import 'package:syathiby/features/opname/service/opname_service.dart';
 import 'package:syathiby/features/payment/bloc/payment_bloc.dart';
@@ -36,6 +38,7 @@ Future<void> setupLocator() async {
       ));
   sl.registerFactory(() => PaymentBloc());
   sl.registerFactory(() => SetoranBloc(setoranService: sl()));
+  sl.registerFactory(() => LaporanBloc(laporanService: sl()));
 
   // Services
   sl.registerLazySingleton<AnnouncementService>(
@@ -52,6 +55,8 @@ Future<void> setupLocator() async {
       () => RackService(sl()));
   sl.registerLazySingleton<SetoranService>(
       () => SetoranService(sl()));
+  sl.registerLazySingleton<LaporanService>(
+      () => LaporanService(sl()));
 
   // External
   sl.registerLazySingleton<Dio>(() {

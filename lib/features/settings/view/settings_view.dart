@@ -129,6 +129,13 @@ class _SettingsViewState extends State<SettingsView> with SettingsViewMixin {
                           ),
                           const SizedBox(height: 8),
                           _buildSettingsTile(
+                            title: 'Laporan',
+                            icon: CupertinoIcons.chart_bar_alt_fill,
+                            iconColor: CupertinoColors.systemOrange,
+                            onTap: () => context.push(Routes.laporan.path),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildSettingsTile(
                             title: LocaleKeys.logout.tr(),
                             icon: CupertinoIcons.square_arrow_left_fill,
                             iconColor: CupertinoColors.systemRed,
