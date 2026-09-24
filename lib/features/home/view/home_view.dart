@@ -6,11 +6,13 @@ import 'package:syathiby/core/constants/color_constants.dart';
 import 'package:syathiby/core/utils/router/routes.dart';
 import 'package:syathiby/common/widgets/gradient_header.dart';
 import 'package:syathiby/common/widgets/glow_card.dart';
-import 'package:syathiby/features/dummies/laporan_screen.dart';
 import 'package:syathiby/features/opname/bloc/opname_bloc.dart';
 import 'package:syathiby/features/opname/bloc/opname_event.dart';
 import 'package:syathiby/features/opname/view/opname_view.dart';
+import 'package:syathiby/features/product/bloc/product_bloc.dart';
+import 'package:syathiby/features/product/bloc/product_event.dart';
 import 'package:syathiby/features/product/view/product_list_view.dart';
+import 'package:syathiby/features/sale/bloc/sale_bloc.dart';
 import 'package:syathiby/features/sale/view/sale_view.dart';
 
 class HomeView extends StatelessWidget {
@@ -58,7 +60,10 @@ class HomeView extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const SaleView(),
+                                builder: (context) => BlocProvider(
+                                  create: (_) => sl<SaleBloc>(),
+                                  child: const SaleView(),
+                                ),
                               ),
                             );
                           },
@@ -115,12 +120,7 @@ class HomeView extends StatelessWidget {
                           label: 'LAPORAN',
                           desc: 'Lihat laporan dan analisis data',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LaporanScreen(),
-                              ),
-                            );
+                            context.push(Routes.laporan.path);
                           },
                         ),
                       ),
@@ -138,7 +138,11 @@ class HomeView extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ProductListView(),
+                          builder: (context) => BlocProvider(
+                            create: (_) => sl<ProductBloc>()
+                              ..add(const GetProductsEvent()),
+                            child: const ProductListView(),
+                          ),
                         ),
                       );
                     },

@@ -15,11 +15,21 @@ class RackService {
     try {
       final token = SharedPreferencesService.instance
           .getData<String>(PreferenceKey.authToken);
+      final brId = SharedPreferencesService.instance
+          .getData<String>(PreferenceKey.branchId);
+
+      if (brId == null) {
+        return HttpResponseModel(
+          statusCode: 401,
+          message: 'Unauthorized: Missing branch id',
+        );
+      }
 
       final response = await _dio.post(
         '/api/rack/data',
         data: FormData.fromMap({
           'token': token,
+          'br_id': brId,
           'searchValue': searchValue,
         }),
       );

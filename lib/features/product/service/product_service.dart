@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:syathiby/core/models/http_response_model.dart';
+import 'package:syathiby/core/services/shared_preferences_service.dart';
 import 'package:syathiby/core/utils/logger_util.dart';
 import 'package:syathiby/features/product/models/category_model.dart';
 import 'package:syathiby/features/product/models/price_list_model.dart';
@@ -11,15 +12,29 @@ class ProductService {
 
   ProductService(this._dio);
 
+  String? _requireBranchId() {
+    return SharedPreferencesService.instance
+        .getData<String>(PreferenceKey.branchId);
+  }
+
   Future<HttpResponseModel<List<ProductModel>>> getProducts({
     String searchValue = '',
     int pStart = 0,
     int pLength = 10,
   }) async {
     try {
+      final brId = _requireBranchId();
+      if (brId == null) {
+        return HttpResponseModel(
+          statusCode: 401,
+          message: 'Unauthorized: Missing branch id',
+        );
+      }
+
       final response = await _dio.post(
         '/api/product/data',
         data: FormData.fromMap({
+          'br_id': brId,
           'searchValue': searchValue,
           'pStart': pStart,
           'pLength': pLength,
@@ -62,9 +77,18 @@ class ProductService {
     int pLength = 10,
   }) async {
     try {
+      final brId = _requireBranchId();
+      if (brId == null) {
+        return HttpResponseModel(
+          statusCode: 401,
+          message: 'Unauthorized: Missing branch id',
+        );
+      }
+
       final response = await _dio.post(
         '/api/category/data',
         data: FormData.fromMap({
+          'br_id': brId,
           'searchValue': searchValue,
           'pStart': pStart,
           'pLength': pLength,
@@ -107,9 +131,18 @@ class ProductService {
     int pLength = 10,
   }) async {
     try {
+      final brId = _requireBranchId();
+      if (brId == null) {
+        return HttpResponseModel(
+          statusCode: 401,
+          message: 'Unauthorized: Missing branch id',
+        );
+      }
+
       final response = await _dio.post(
         '/api/unit/data',
         data: FormData.fromMap({
+          'br_id': brId,
           'searchValue': searchValue,
           'pStart': pStart,
           'pLength': pLength,
