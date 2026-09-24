@@ -91,11 +91,12 @@ class _SetoranViewState extends State<SetoranView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<SetoranBloc, SetoranState>(
-        listenWhen: (prev, curr) => curr is SetoranError || curr is SetoranSuccess,
+      body: BlocListener<SetoranBloc, SetoranState>(
+        listenWhen: (prev, curr) =>
+            curr is SetoranError || curr is SetoranSuccess,
         listener: (context, state) {
           if (state is SetoranError) {
-            ScaffoldMessenger.of(context).showSnackBar(
+            ScaffoldMessenger.maybeOf(context)?.showSnackBar(
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: ColorConstants.redError,
@@ -135,19 +136,21 @@ class _SetoranViewState extends State<SetoranView> {
             );
           }
         },
-        builder: (context, state) {
-          return Column(
-            children: [
-              GradientHeader(
-                title: 'Setoran',
-                subtitle: _subtitleForState(state),
-              ),
-              Expanded(
-                child: _buildBody(context, state),
-              ),
-            ],
-          );
-        },
+        child: BlocBuilder<SetoranBloc, SetoranState>(
+          builder: (context, state) {
+            return Column(
+              children: [
+                GradientHeader(
+                  title: 'Setoran',
+                  subtitle: _subtitleForState(state),
+                ),
+                Expanded(
+                  child: _buildBody(context, state),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
