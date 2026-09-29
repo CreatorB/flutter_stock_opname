@@ -8,6 +8,7 @@ class GradientHeader extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
   final bool showWave;
+  final bool showBackButton;
 
   const GradientHeader({
     super.key,
@@ -16,6 +17,7 @@ class GradientHeader extends StatelessWidget {
     this.leading,
     this.trailing,
     this.showWave = true,
+    this.showBackButton = true,
   });
 
   @override
@@ -41,14 +43,16 @@ class GradientHeader extends StatelessWidget {
                 child: Row(
                   children: [
                     leading ??
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios, size: 18, color: Colors.white),
-                          onPressed: () {
-                            if (context.canPop()) {
-                              context.pop();
-                            }
-                          },
-                        ),
+                        (showBackButton
+                            ? IconButton(
+                                icon: const Icon(Icons.arrow_back_ios, size: 18, color: Colors.white),
+                                onPressed: () {
+                                  if (context.canPop()) {
+                                    context.pop();
+                                  }
+                                },
+                              )
+                            : const SizedBox(width: 48)),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

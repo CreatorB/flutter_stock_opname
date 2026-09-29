@@ -59,7 +59,10 @@ class _SettingsViewState extends State<SettingsView> with SettingsViewMixin {
               body: SingleChildScrollView(
                 child: Column(
                   children: [
-                    const GradientHeader(title: 'Pengaturan'),
+                    GradientHeader(
+                      title: LocaleKeys.profile.tr(),
+                      showBackButton: false,
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -126,13 +129,6 @@ class _SettingsViewState extends State<SettingsView> with SettingsViewMixin {
                             icon: CupertinoIcons.globe,
                             iconColor: CupertinoColors.systemGreen,
                             onTap: () => _showSelectLanguageSheet(context),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildSettingsTile(
-                            title: 'Laporan',
-                            icon: CupertinoIcons.chart_bar_alt_fill,
-                            iconColor: CupertinoColors.systemOrange,
-                            onTap: () => context.push(Routes.laporan.path),
                           ),
                           const SizedBox(height: 8),
                           _buildSettingsTile(
