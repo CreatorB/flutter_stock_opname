@@ -581,7 +581,12 @@ class _SaleViewState extends State<SaleView> {
   void _navigateToCart(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const CartView()),
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: context.read<SaleBloc>(),
+          child: const CartView(),
+        ),
+      ),
     );
   }
 
