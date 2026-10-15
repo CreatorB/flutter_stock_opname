@@ -353,7 +353,7 @@ class _SaleViewState extends State<SaleView> {
                 color: Colors.white,
                 size: 20,
               ),
-              onPressed: () => _addToCart(context, product),
+              onPressed: () => _showPriceSelector(context, product),
             ),
           ),
         ],
@@ -361,27 +361,8 @@ class _SaleViewState extends State<SaleView> {
     );
   }
 
-  void _addToCart(BuildContext context, dynamic product) {
-    context.read<SaleBloc>().add(AddToCartEvent(
-          productId: product.id ?? '',
-          productCode: product.pCode ?? '',
-          productName: product.pName ?? '',
-          priceArea1: product.priceArea1,
-          priceArea2: product.priceArea2,
-          priceArea3: product.priceArea3,
-          buyPrice: product.buyPrice,
-        ));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${product.pName} ditambahkan'),
-        backgroundColor: ColorConstants.greenPrice,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 1),
-      ),
-    );
-  }
-
   void _showPriceSelector(BuildContext context, dynamic product) {
+    final saleBloc = context.read<SaleBloc>();
     CartItemModel cartItem = CartItemModel(
       productId: product.id ?? '',
       productCode: product.pCode ?? '',
@@ -395,6 +376,7 @@ class _SaleViewState extends State<SaleView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: false,
       backgroundColor: ColorConstants.glassCardSolid,
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
@@ -462,6 +444,7 @@ class _SaleViewState extends State<SaleView> {
                     grosirPriceList: cartItem.grosirPriceList,
                     manualPrice: cartItem.manualPrice,
                     quantity: cartItem.quantity,
+                    saleBloc: saleBloc,
                   );
                   Navigator.pop(ctx);
                 },
@@ -491,7 +474,9 @@ class _SaleViewState extends State<SaleView> {
     required int quantity,
     PriceListModel? retailPriceList,
     PriceListModel? grosirPriceList,
+    SaleBloc? saleBloc,
   }) {
+    final bloc = saleBloc ?? context.read<SaleBloc>();
     String? priceArea;
 
     if (priceMode == PriceMode.retail) {
@@ -512,7 +497,7 @@ class _SaleViewState extends State<SaleView> {
       priceArea = 'grosir';
     }
 
-    final state = context.read<SaleBloc>().state;
+    final state = bloc.state;
     final existingIndex = state is SaleInProgress
         ? state.cartItems.indexWhere(
             (item) => item.productId == (product.id ?? ''),
@@ -520,7 +505,7 @@ class _SaleViewState extends State<SaleView> {
         : -1;
 
     if (existingIndex < 0) {
-      context.read<SaleBloc>().add(AddToCartEvent(
+      bloc.add(AddToCartEvent(
         productId: product.id ?? '',
         productCode: product.pCode ?? '',
         productName: product.pName ?? '',
@@ -533,7 +518,7 @@ class _SaleViewState extends State<SaleView> {
       ));
     }
 
-    context.read<SaleBloc>().add(UpdateCartItemEvent(
+    bloc.add(UpdateCartItemEvent(
       productId: product.id ?? '',
       quantity: quantity,
       priceMode: priceMode == PriceMode.grosir ? 'grosir' : 'retail',
